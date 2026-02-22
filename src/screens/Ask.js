@@ -31,7 +31,7 @@ export default function Ask({ user }) {
 
     try {
       const res = await fetch(
-        "https://a7e9a764-6003-4151-81fb-310a8b8c76f7-00-3f5w33in1d1pc.kirk.replit.dev/treatment/ask",
+        "https://doctor-for-books-backned--p0675892.replit.app/treatment/ask",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
