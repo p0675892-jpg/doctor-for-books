@@ -8,6 +8,7 @@ import Ask from "./screens/Ask";
 import Sign from "./screens/Sign";       // ✋ Sign Hub
 import Stories from "./screens/Stories";
 import Profile from "./screens/Profile";
+import Settings from "./screens/Settings";
 
 export default function App() {
   const [user, setUser] = useState(undefined);
@@ -65,6 +66,8 @@ export default function App() {
         return <Profile user={user} />;
       default:
         return <Ask user={user} />;
+      case "settings":
+        return <Settings />;
     }
   };
 

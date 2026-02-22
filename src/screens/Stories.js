@@ -58,8 +58,25 @@ export default function Stories() {
     setIndex((index + 1) % stories.length);
   };
 
-  const story = stories[index];
+  const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  const story = stories[(index + week) % stories.length];
   const likeCount = likes[story.id] || 0;
+
+  if (open) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2>{story.title}</h2>
+  
+        <div style={{ lineHeight: 1.7 }}>
+          {story.text.repeat(8)}
+        </div>
+  
+        <button onClick={() => setOpen(false)}>
+          ⬅️ Back
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>

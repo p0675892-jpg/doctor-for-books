@@ -44,9 +44,11 @@ export default function Ask({ user }) {
 
       const data = await res.json();
 
-      const reply =
-        data.answer ||
-        "Hmm… my brain needs internet to shine 😅";
+      if (!res.ok || !data.answer) {
+        throw new Error("AI unavailable");
+      }
+
+      const reply = data.answer;
 
       setMessages((m) => [...m, { role: "ai", text: reply }]);
 
@@ -54,12 +56,13 @@ export default function Ask({ user }) {
       setHistory(newHistory);
       localStorage.setItem("dfb_history", JSON.stringify(newHistory));
     } catch {
+      const smartReply = goOfflineAnswer(question);
+
       setMessages((m) => [
         ...m,
         {
           role: "ai",
-          text:
-            "No internet 😅 — I’m still smart, just temporarily offline.",
+          text: smartReply,
         },
       ]);
     }
@@ -74,6 +77,24 @@ export default function Ask({ user }) {
     }
   };
 
+  function getOfflineAnswer(q) {
+    const text = q.toLowerCase();
+
+    if (text.includes("photosynthesis"))
+      return "Photosynthesis is how plants convert sunlight into food and oxygen 🌱";
+
+    if (text.includes("algebra"))
+      return "Algebra is about finding unknown numbers using symbols like x 🔍";
+
+    if (text.includes("essay"))
+      return "A strong essay has introduction, body paragraphs, and conclusion ✍️";
+
+    if (text.includes("study"))
+      return "Short daily study sessions work better than long cramming sessions 🧠";
+
+    return "I'm offline right now, but try breaking the problem into smaller steps. You’ve got this 💛";
+  }
+
   return (
     <div style={{ padding: 20 }}>
       {/* FLOATING TOOL */}
@@ -83,19 +104,13 @@ export default function Ask({ user }) {
       </div>
 
       <h1>Ask Dr. E 🔍</h1>
-      <p style={{ opacity: 0.7 }}>
-        Messy English is fine — I understand 😎
-      </p>
+      <p style={{ opacity: 0.7 }}>Messy English is fine — I understand 😎</p>
 
       {/* QUICK PROMPTS */}
       {messages.length === 0 && (
         <div style={styles.prompts}>
           {quickPrompts.map((p, i) => (
-            <button
-              key={i}
-              style={styles.promptBtn}
-              onClick={() => askAI(p)}
-            >
+            <button key={i} style={styles.promptBtn} onClick={() => askAI(p)}>
               {p}
             </button>
           ))}
@@ -119,11 +134,7 @@ export default function Ask({ user }) {
           </div>
         ))}
 
-        {loading && (
-          <p style={{ opacity: 0.7 }}>
-            Dr. E is thinking… 🧠
-          </p>
-        )}
+        {loading && <p style={{ opacity: 0.7 }}>Dr. E is thinking… 🧠</p>}
       </div>
 
       {/* INPUT */}
@@ -174,9 +185,7 @@ export default function Ask({ user }) {
         </div>
       )}
 
-      <p style={styles.footer}>
-        “Confusion means learning is happening.” 💛
-      </p>
+      <p style={styles.footer}>“Confusion means learning is happening.” 💛</p>
     </div>
   );
 }
