@@ -1,106 +1,78 @@
-import React, { useEffect, useState } from "react";
-import { auth } from "./firebase";
+import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 
-import Sign from "./screens/Sign";
-import Home from "./screens/Home";
-import Ask from "./screens/Ask";
-import Stories from "./screens/Stories";
-import Profile from "./screens/Profile";
-
-import "./styles/styles.css";
+import AuthScreen from "./AuthScreen";
 
 export default function App() {
-  const [user, setUser] = useState(undefined); // undefined = checking auth
-  const [tab, setTab] = useState("home");
+  const [user, setUser] = useState(undefined);
 
-  // 🔐 AUTH CHECK WITH SAFETY TIMEOUT
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u || null);
+    let resolved = false;
+
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      if (!resolved) {
+        resolved = true;
+        setUser(u || null);
+      }
     });
 
-    // ⏰ Safety fallback (prevents infinite loading)
     const timeout = setTimeout(() => {
-      setUser(null);
-    }, 6000);
+      if (!resolved) {
+        resolved = true;
+        setUser(null);
+      }
+    }, 5000);
 
     return () => {
-      unsub();
+      unsubscribe();
       clearTimeout(timeout);
     };
   }, []);
 
-  // ⏳ LOADING SCREEN (SHORT ONLY)
+  // 🌑 Loading screen
   if (user === undefined) {
     return (
-      <div className="loading">
-        <h2>Doctor for Books 👩‍⚕️</h2>
-        <p>Preparing your study space...</p>
+      <div style={styles.loading}>
+        <div>
+          <h2>Doctor for Books 🧠</h2>
+          <p>Preparing your study space...</p>
+        </div>
       </div>
     );
   }
 
-  // 🔐 NOT SIGNED IN → SIGN SCREEN
-  if (!user) {
-    return <Sign />;
-  }
+  // 🚪 Not logged in → show login
+  if (!user) return <AuthScreen />;
 
-  // 🧭 TAB ROUTER
-  const renderScreen = () => {
-    switch (tab) {
-      case "home":
-        return <Home />;
-      case "ask":
-        return <Ask />;
-      case "stories":
-        return <Stories />;
-      case "profile":
-        return <Profile setTab={setTab} />;
-      default:
-        return <Home />;
-    }
-  };
+  // 👑 Logged in → show MAIN APP
+  return <Dashboard user={user} />;
+}
 
-  // 🏠 MAIN APP
+// ⭐ Simple V1 Dashboard (replace later)
+function Dashboard({ user }) {
   return (
-    <div className="app-container">
-      <div className="screen">{renderScreen()}</div>
-
-      {/* 🔻 BOTTOM NAV */}
-      <nav className="bottom-nav">
-        <button
-          className={tab === "home" ? "active" : ""}
-          onClick={() => setTab("home")}
-        >
-          🏠
-          <span>Home</span>
-        </button>
-
-        <button
-          className={tab === "ask" ? "active" : ""}
-          onClick={() => setTab("ask")}
-        >
-          ❓
-          <span>Ask</span>
-        </button>
-
-        <button
-          className={tab === "stories" ? "active" : ""}
-          onClick={() => setTab("stories")}
-        >
-          📚
-          <span>Stories</span>
-        </button>
-
-        <button
-          className={tab === "profile" ? "active" : ""}
-          onClick={() => setTab("profile")}
-        >
-          👤
-          <span>Profile</span>
-        </button>
-      </nav>
+    <div style={styles.app}>
+      <h1>Doctor for Books 🧠</h1>
+      <p>Welcome, {user.email}</p>
+      <p>Your study assistant is ready.</p>
     </div>
   );
 }
+
+const styles = {
+  loading: {
+    height: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0b0b0b",
+    color: "#fff",
+    fontFamily: "system-ui",
+    textAlign: "center",
+  },
+  app: {
+    padding: 40,
+    fontFamily: "system-ui",
+  },
+};
