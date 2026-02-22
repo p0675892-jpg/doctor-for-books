@@ -2,37 +2,39 @@ import { useEffect, useState } from "react";
 
 export default function Profile({ setTab, user }) {
 
-  // 👤 Editable name (saved locally for V1)
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(false);
+  const [xp, setXp] = useState(0);
 
-  // 📊 Demo progress + strengths
-  const progress = 65; // change later from real data
-
+  const progress = 65;
   const strongAreas = ["English", "Reading", "Biology"];
   const weakAreas = ["Mathematics", "Physics"];
 
-  // 💾 Load saved name
+  // LOAD DATA
   useEffect(() => {
-    const saved = localStorage.getItem("dfb_name");
-    if (saved) setName(saved);
+    const savedName = localStorage.getItem("dfb_name");
+    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
+
+    setXp(savedXP);
+
+    if (savedName) setName(savedName);
     else setName(user?.email?.split("@")[0] || "Student");
   }, [user]);
 
-  // 💾 Save name
   const saveName = () => {
     localStorage.setItem("dfb_name", name);
     setEditing(false);
   };
 
+  const level = Math.floor(xp / 100) + 1;
+
   return (
     <div style={styles.page}>
 
-      {/* 🔝 HEADER */}
+      {/* HEADER */}
       <div style={styles.header}>
         <h2>Profile 👤</h2>
 
-        {/* ⚙️ SETTINGS BUTTON */}
         <button
           style={styles.settingsBtn}
           onClick={() => setTab("settings")}
@@ -41,12 +43,15 @@ export default function Profile({ setTab, user }) {
         </button>
       </div>
 
-      {/* 🩺 DR E MASCOT */}
-      <div style={styles.mascot}>
-        🩺📚 Dr. E
-      </div>
+      {/* MASCOT */}
+      <div style={styles.mascot}>🩺📚 Dr. E</div>
 
-      {/* ✏️ NAME SECTION */}
+      {/* GREETING */}
+      <p style={styles.greeting}>
+        Dr. E: Keep going — progress compounds 💛
+      </p>
+
+      {/* NAME */}
       <div style={styles.nameBox}>
         {editing ? (
           <>
@@ -72,9 +77,14 @@ export default function Profile({ setTab, user }) {
         )}
       </div>
 
-      {/* 📊 PROGRESS */}
+      {/* LEVEL + XP */}
+      <div style={styles.xpBox}>
+        ⭐ Level {level} — {xp} XP
+      </div>
+
+      {/* PROGRESS */}
       <div style={styles.section}>
-        <h3>Progress</h3>
+        <h3>Overall Progress</h3>
 
         <div style={styles.progressBar}>
           <div
@@ -88,7 +98,7 @@ export default function Profile({ setTab, user }) {
         <p>{progress}% mastery</p>
       </div>
 
-      {/* 💪 STRONG AREAS */}
+      {/* STRONG AREAS */}
       <div style={styles.section}>
         <h3>Strong Areas 💪</h3>
         {strongAreas.map((item) => (
@@ -98,9 +108,9 @@ export default function Profile({ setTab, user }) {
         ))}
       </div>
 
-      {/* ⚠️ WEAK AREAS */}
+      {/* WEAK AREAS */}
       <div style={styles.section}>
-        <h3>Weak Areas ⚠️</h3>
+        <h3>Focus Areas 🎯</h3>
         {weakAreas.map((item) => (
           <div key={item} style={styles.bad}>
             {item}
@@ -147,9 +157,15 @@ const styles = {
     margin: "20px 0"
   },
 
+  greeting: {
+    textAlign: "center",
+    opacity: 0.7,
+    marginBottom: 10
+  },
+
   nameBox: {
     textAlign: "center",
-    marginBottom: 30
+    marginBottom: 20
   },
 
   editBtn: {
@@ -173,6 +189,16 @@ const styles = {
     borderRadius: 6,
     border: "none",
     marginRight: 8
+  },
+
+  xpBox: {
+    background: "#FFD700",
+    color: "#000",
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 20,
+    textAlign: "center",
+    fontWeight: "bold"
   },
 
   section: {

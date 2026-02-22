@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Sign() {
   const [mode, setMode] = useState("menu");
   const [lesson, setLesson] = useState(null);
   const [message, setMessage] = useState("");
+  const [xp, setXp] = useState(0);
 
-  // ⭐ XP REWARD SYSTEM
+  // ⭐ LOAD XP
+  useEffect(() => {
+    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
+    setXp(savedXP);
+  }, []);
+
+  // ⭐ ADD XP
   const addXP = () => {
-    let xp = parseInt(localStorage.getItem("dfb_xp")) || 0;
-
-    xp += 10;
-
-    localStorage.setItem("dfb_xp", xp);
+    const newXP = xp + 10;
+    setXp(newXP);
+    localStorage.setItem("dfb_xp", newXP);
   };
+
+  const level = Math.floor(xp / 100) + 1;
 
   // 🤟 SIGN LESSONS
   const signLessons = [
@@ -38,7 +45,6 @@ export default function Sign() {
       options: ["Write badly", "Write again", "Write quickly"],
       correct: "Write again",
     },
-
     {
       title: "🧠 Grammar Sense",
       content: ["I am bored = I feel bored", "I am boring = I cause boredom"],
@@ -48,18 +54,26 @@ export default function Sign() {
     },
   ];
 
-  // ▶️ START LESSON
   const startLesson = (l) => {
     setLesson(l);
     setMode("class");
     setMessage("");
   };
 
-  // ✅ CHECK ANSWER
   const checkAnswer = (choice) => {
     if (choice === lesson.correct) {
       addXP();
-      setMessage("Correct! +10 XP 💛");
+
+      const praises = [
+        "Excellent! 💛",
+        "You’re learning fast 🚀",
+        "Dr. E is proud 😎",
+        "Communication unlocked ✨",
+      ];
+
+      setMessage(
+        praises[Math.floor(Math.random() * praises.length)] + " +10 XP"
+      );
     } else {
       setMessage("Not quite 😅 Try again.");
     }
@@ -68,6 +82,11 @@ export default function Sign() {
   return (
     <div style={styles.container}>
       <h1>Communication Academy 🌍</h1>
+
+      {/* XP + LEVEL */}
+      <div style={styles.xpBox}>
+        ⭐ Level {level} — {xp} XP
+      </div>
 
       {/* MAIN MENU */}
       {mode === "menu" && (
@@ -88,7 +107,7 @@ export default function Sign() {
         </>
       )}
 
-      {/* SIGN LESSON LIST */}
+      {/* SIGN LIST */}
       {mode === "sign" && (
         <>
           <h2>Sign Lessons</h2>
@@ -103,7 +122,7 @@ export default function Sign() {
         </>
       )}
 
-      {/* LANGUAGE LESSON LIST */}
+      {/* LANGUAGE LIST */}
       {mode === "language" && (
         <>
           <h2>Language Lessons</h2>
@@ -174,9 +193,16 @@ const styles = {
   container: {
     padding: 20,
     paddingBottom: 100,
-    overflowY: "auto",
   },
 
+  xpBox: {
+    background: "#FFD700",
+    color: "#000",
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+    fontWeight: "bold",
+  },
   card: {
     background: "#1a1a1a",
     padding: 16,

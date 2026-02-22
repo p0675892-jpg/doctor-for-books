@@ -1,29 +1,23 @@
 import { useEffect, useState } from "react";
 
-export default function Home({ user }) {
+export default function Home({ user, setTab }) {
   const [name, setName] = useState("Student");
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(1);
   const [checked, setChecked] = useState(false);
 
-  // 🔄 LOAD + LIVE SYNC DATA
   useEffect(() => {
     const load = () => {
       setName(localStorage.getItem("dfb_name") || "Student");
-
       setXp(parseInt(localStorage.getItem("dfb_xp")) || 0);
-
       setStreak(parseInt(localStorage.getItem("dfb_streak")) || 1);
 
       const today = new Date().toDateString();
-
       setChecked(localStorage.getItem("dfb_last_check") === today);
     };
 
     load();
-
     window.addEventListener("storage", load);
-
     return () => window.removeEventListener("storage", load);
   }, []);
 
@@ -33,7 +27,6 @@ export default function Home({ user }) {
   // 📅 DAILY CHECK-IN
   const checkIn = () => {
     const today = new Date().toDateString();
-
     const newXP = xp + 5;
     const newStreak = streak + 1;
 
@@ -46,13 +39,13 @@ export default function Home({ user }) {
     setChecked(true);
   };
 
-  // 🧑‍⚕️ DR. E PERSONALITY
+  // 🧑‍⚕️ DR. E VOICE
   const messages = [
     "Your brain is warming up nicely 🧠",
     "Consistency is your superpower 💪",
     "Tiny progress compounds 🌱",
     "Future you is quietly cheering 📣",
-    "You don’t need perfection — just motion ✨",
+    "Motion beats perfection ✨",
   ];
 
   const insights = [
@@ -63,12 +56,11 @@ export default function Home({ user }) {
   ];
 
   const message = messages[Math.floor(Math.random() * messages.length)];
-
   const insight = insights[Math.floor(Math.random() * insights.length)];
 
   return (
     <div style={styles.container}>
-      {/* 🧑‍⚕️ HEADER */}
+      {/* HEADER */}
       <div style={styles.header}>
         <div style={styles.avatar}>🧑‍⚕️</div>
 
@@ -78,7 +70,7 @@ export default function Home({ user }) {
         </div>
       </div>
 
-      {/* 📅 DAILY RITUAL */}
+      {/* DAILY CHECK-IN */}
       <div style={styles.card}>
         <h3>📅 Daily Check-In</h3>
 
@@ -91,50 +83,62 @@ export default function Home({ user }) {
         )}
       </div>
 
-      {/* ⭐ PROGRESS SNAPSHOT */}
+      {/* PROGRESS */}
       <div style={styles.card}>
         <h3>⭐ Level {level}</h3>
 
         <div style={styles.bar}>
-          <div
-            style={{
-              ...styles.fill,
-              width: progress + "%",
-            }}
-          />
+          <div style={{ ...styles.fill, width: progress + "%" }} />
         </div>
 
         <small>{progress}% to next level</small>
-
         <p style={{ marginTop: 6 }}>🔥 {streak} Day Streak</p>
       </div>
 
-      {/* 🎯 TODAY'S MISSION */}
+      {/* MISSION */}
       <div style={styles.card}>
         <h3>🎯 Today’s Mission</h3>
         <p>Ask one question OR complete one lesson</p>
       </div>
 
-      {/* ⚠️ FOCUS AREA */}
-      <div style={styles.card}>⚠️ Focus Area: Algebra</div>
+      {/* FOCUS */}
+      <div style={styles.card}>
+        ⚠️ Focus Area: Algebra
+      </div>
 
-      {/* 💡 INSIGHT */}
+      {/* INSIGHT */}
       <div style={styles.card}>
         💡 Daily Insight
         <p style={{ marginTop: 6 }}>{insight}</p>
       </div>
 
-      {/* 🚀 QUICK ACTIONS */}
+      {/* 🚀 QUICK ACTIONS — NOW FUNCTIONAL */}
       <div style={styles.actions}>
-        <div style={styles.actionCard}>🔍 Ask Dr. E</div>
+        <div
+          style={styles.actionCard}
+          onClick={() => setTab("ask")}
+        >
+          🔍 Ask Dr. E
+        </div>
 
-        <div style={styles.actionCard}>🤟 Continue Lessons</div>
+        <div
+          style={styles.actionCard}
+          onClick={() => setTab("sign")}
+        >
+          🤟 Continue Lessons
+        </div>
 
-        <div style={styles.actionCard}>📖 Read a Story</div>
+        <div
+          style={styles.actionCard}
+          onClick={() => setTab("stories")}
+        >
+          📖 Read a Story
+        </div>
       </div>
 
-      {/* ❤️ EMOTIONAL FOOTER */}
-      <p style={styles.footer}>“Small effort today = powerful tomorrow 💛”</p>
+      <p style={styles.footer}>
+        “Small effort today = powerful tomorrow 💛”
+      </p>
     </div>
   );
 }
@@ -153,13 +157,9 @@ const styles = {
     marginBottom: 16,
   },
 
-  avatar: {
-    fontSize: 52,
-  },
+  avatar: { fontSize: 52 },
 
-  sub: {
-    opacity: 0.7,
-  },
+  sub: { opacity: 0.7 },
 
   card: {
     background: "#1a1a1a",
@@ -203,6 +203,7 @@ const styles = {
     borderRadius: 16,
     fontWeight: "bold",
     textAlign: "center",
+    cursor: "pointer",
   },
 
   footer: {
