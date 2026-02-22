@@ -1,20 +1,43 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #0b0b0f;
+  background: #0f0f0f;
   color: white;
 }
 
 .app {
   min-height: 100vh;
-  padding-bottom: 70px;
+  padding-bottom: 80px; /* space for nav */
 }
 
-button {
-  background: #ffd700;
+/* 🔻 LOADING */
+.loading {
+  text-align: center;
+  margin-top: 120px;
+}
+
+/* 🔻 BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+
+  background: #111;
+  border-top: 1px solid #333;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  z-index: 9999; /* forces it above everything */
+}
+
+.bottom-nav button {
+  background: none;
   border: none;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-weight: bold;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
 }

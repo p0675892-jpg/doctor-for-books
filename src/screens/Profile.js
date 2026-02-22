@@ -1,107 +1,208 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function Profile({ setTab }) {
-  const [name, setName] = useState(
-    localStorage.getItem("dfb_name") || "Student"
-  );
-  const [edit, setEdit] = useState(false);
+export default function Profile({ setTab, user }) {
 
-  const [xp, setXp] = useState(0);
-  const [streak, setStreak] = useState(1);
+  // 👤 Editable name (saved locally for V1)
+  const [name, setName] = useState("");
+  const [editing, setEditing] = useState(false);
 
+  // 📊 Demo progress + strengths
+  const progress = 65; // change later from real data
+
+  const strongAreas = ["English", "Reading", "Biology"];
+  const weakAreas = ["Mathematics", "Physics"];
+
+  // 💾 Load saved name
   useEffect(() => {
-    const storedXP =
-      parseInt(localStorage.getItem("dfb_xp")) || 0;
-    setXp(storedXP);
+    const saved = localStorage.getItem("dfb_name");
+    if (saved) setName(saved);
+    else setName(user?.email?.split("@")[0] || "Student");
+  }, [user]);
 
-    const storedStreak =
-      parseInt(localStorage.getItem("dfb_streak")) || 1;
-    setStreak(storedStreak);
-  }, []);
-
-  const level = Math.floor(xp / 100) + 1;
-  const progress = xp % 100;
-
+  // 💾 Save name
   const saveName = () => {
     localStorage.setItem("dfb_name", name);
-    setEdit(false);
+    setEditing(false);
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Profile 👤</h1>
+    <div style={styles.page}>
 
-      {/* NAME */}
-      {edit ? (
-        <>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button onClick={saveName}>Save</button>
-        </>
-      ) : (
-        <>
-          <h2>{name}</h2>
-          <button onClick={() => setEdit(true)}>
-            ✏️ Edit Name
-          </button>
-        </>
-      )}
+      {/* 🔝 HEADER */}
+      <div style={styles.header}>
+        <h2>Profile 👤</h2>
 
-      {/* LEVEL */}
-      <div style={styles.card}>
-        ⭐ Level {level}
+        {/* ⚙️ SETTINGS BUTTON */}
+        <button
+          style={styles.settingsBtn}
+          onClick={() => setTab("settings")}
+        >
+          ⚙️
+        </button>
       </div>
 
-      {/* XP BAR */}
-      <div style={styles.card}>
-        <p>{xp} XP</p>
+      {/* 🩺 DR E MASCOT */}
+      <div style={styles.mascot}>
+        🩺📚 Dr. E
+      </div>
 
-        <div style={styles.bar}>
+      {/* ✏️ NAME SECTION */}
+      <div style={styles.nameBox}>
+        {editing ? (
+          <>
+            <input
+              style={styles.input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button style={styles.saveBtn} onClick={saveName}>
+              Save
+            </button>
+          </>
+        ) : (
+          <>
+            <h3>{name}</h3>
+            <button
+              style={styles.editBtn}
+              onClick={() => setEditing(true)}
+            >
+              Edit Name
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* 📊 PROGRESS */}
+      <div style={styles.section}>
+        <h3>Progress</h3>
+
+        <div style={styles.progressBar}>
           <div
             style={{
-              ...styles.fill,
+              ...styles.progressFill,
               width: progress + "%"
             }}
           />
         </div>
 
-        <small>
-          {progress}% to next level
-        </small>
+        <p>{progress}% mastery</p>
       </div>
 
-      {/* STREAK */}
-      <div style={styles.card}>
-        🔥 {streak} day streak
+      {/* 💪 STRONG AREAS */}
+      <div style={styles.section}>
+        <h3>Strong Areas 💪</h3>
+        {strongAreas.map((item) => (
+          <div key={item} style={styles.good}>
+            {item}
+          </div>
+        ))}
       </div>
 
-      {/* SETTINGS */}
-      <button onClick={() => setTab("settings")}>
-        ⚙️ Settings
-      </button>
+      {/* ⚠️ WEAK AREAS */}
+      <div style={styles.section}>
+        <h3>Weak Areas ⚠️</h3>
+        {weakAreas.map((item) => (
+          <div key={item} style={styles.bad}>
+            {item}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ height: 40 }} />
     </div>
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
-  card: {
-    background: "#1a1a1a",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12
+  page: {
+    padding: 20,
+    color: "white",
+    background: "#0b0b0b",
+    minHeight: "100vh",
+    overflowY: "auto",
+    fontFamily: "system-ui"
   },
 
-  bar: {
-    background: "#333",
-    height: 12,
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+
+  settingsBtn: {
+    background: "#222",
+    border: "none",
+    color: "white",
+    fontSize: 18,
+    padding: "6px 10px",
+    borderRadius: 8,
+    cursor: "pointer"
+  },
+
+  mascot: {
+    fontSize: 28,
+    textAlign: "center",
+    margin: "20px 0"
+  },
+
+  nameBox: {
+    textAlign: "center",
+    marginBottom: 30
+  },
+
+  editBtn: {
+    background: "#f5c542",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: 8,
+    cursor: "pointer"
+  },
+
+  saveBtn: {
+    background: "#4caf50",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: 8,
+    cursor: "pointer"
+  },
+
+  input: {
+    padding: 8,
+    borderRadius: 6,
+    border: "none",
+    marginRight: 8
+  },
+
+  section: {
+    marginBottom: 25
+  },
+
+  progressBar: {
+    width: "100%",
+    height: 14,
+    background: "#222",
     borderRadius: 10,
     overflow: "hidden"
   },
 
-  fill: {
-    background: "#FFD700",
-    height: "100%"
+  progressFill: {
+    height: "100%",
+    background: "#f5c542"
+  },
+
+  good: {
+    background: "#163b16",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 8
+  },
+
+  bad: {
+    background: "#3b1616",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 8
   }
 };
