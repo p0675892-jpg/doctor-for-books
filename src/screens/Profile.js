@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
 export default function Profile({ setTab, user }) {
-
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(false);
   const [xp, setXp] = useState(0);
 
   const progress = 65;
+
   const strongAreas = ["English", "Reading", "Biology"];
   const weakAreas = ["Mathematics", "Physics"];
 
@@ -30,14 +30,14 @@ export default function Profile({ setTab, user }) {
 
   return (
     <div style={styles.page}>
-
       {/* HEADER */}
       <div style={styles.header}>
         <h2>Profile 👤</h2>
 
+        {/* ⚙️ SETTINGS */}
         <button
           style={styles.settingsBtn}
-          onClick={() => setTab("settings")}
+          onClick={() => setTab && setTab("settings")}
         >
           ⚙️
         </button>
@@ -103,7 +103,7 @@ export default function Profile({ setTab, user }) {
         <h3>Strong Areas 💪</h3>
         {strongAreas.map((item) => (
           <div key={item} style={styles.good}>
-            {item}
+            ✓ {item}
           </div>
         ))}
       </div>
@@ -113,12 +113,12 @@ export default function Profile({ setTab, user }) {
         <h3>Focus Areas 🎯</h3>
         {weakAreas.map((item) => (
           <div key={item} style={styles.bad}>
-            {item}
+            ⚠ {item}
           </div>
         ))}
       </div>
 
-      <div style={{ height: 40 }} />
+      <div style={{ height: 60 }} />
     </div>
   );
 }
@@ -146,13 +146,13 @@ const styles = {
     border: "none",
     color: "white",
     fontSize: 18,
-    padding: "6px 10px",
-    borderRadius: 8,
+    padding: "8px 12px",
+    borderRadius: 10,
     cursor: "pointer"
   },
 
   mascot: {
-    fontSize: 28,
+    fontSize: 30,
     textAlign: "center",
     margin: "20px 0"
   },
@@ -160,7 +160,7 @@ const styles = {
   greeting: {
     textAlign: "center",
     opacity: 0.7,
-    marginBottom: 10
+    marginBottom: 12
   },
 
   nameBox: {
@@ -171,22 +171,22 @@ const styles = {
   editBtn: {
     background: "#f5c542",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: 8,
+    padding: "8px 14px",
+    borderRadius: 10,
     cursor: "pointer"
   },
 
   saveBtn: {
     background: "#4caf50",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: 8,
+    padding: "8px 14px",
+    borderRadius: 10,
     cursor: "pointer"
   },
 
   input: {
     padding: 8,
-    borderRadius: 6,
+    borderRadius: 8,
     border: "none",
     marginRight: 8
   },
@@ -194,11 +194,12 @@ const styles = {
   xpBox: {
     background: "#FFD700",
     color: "#000",
-    padding: 10,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 14,
     marginBottom: 20,
     textAlign: "center",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    fontSize: 16
   },
 
   section: {
@@ -220,15 +221,15 @@ const styles = {
 
   good: {
     background: "#163b16",
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 8
   },
 
   bad: {
     background: "#3b1616",
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 8
   }
 };

@@ -1,112 +1,185 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
 
-export default function AuthScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+import Sign from "./screens/Sign";
+import Home from "./screens/Home";
+import Ask from "./screens/Ask";
+import Stories from "./screens/Stories";
+import Profile from "./screens/Profile";
+import Settings from "./screens/Settings";
 
-  const handleAuth = async () => {
-    if (!email || !password) {
-      setError("Enter email and password");
-      return;
-    }
+export default function App() {
+  const [user, setUser] = useState(undefined);
+  const [tab, setTab] = useState("home");
 
-    setLoading(true);
-    setError("");
+  // 🔐 FIREBASE AUTH
+  useEffect(() => {
+    let resolved = false;
 
-    try {
-      if (isSignup) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (!resolved) {
+        resolved = true;
+        setUser(u || null);
       }
-    } catch (err) {
-      setError(err.message);
-    }
+    });
 
-    setLoading(false);
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        setUser(null);
+      }
+    }, 5000);
+
+    return () => {
+      unsub();
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  // 🌑 LOADING
+  if (user === undefined) {
+    return (
+      <div style={styles.loading}>
+        <div>
+          <h2>Doctor for Books 🧠</h2>
+          <p style={{ opacity: 0.7 }}>Preparing your study space…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🚪 NOT SIGNED IN
+  if (!user) return <Sign />;
+
+  // 🧭 SCREEN ROUTER
+  const renderScreen = () => {
+    switch (tab) {
+      case "home":
+        return <Home user={user} setTab={setTab} />;
+      case "ask":
+        return <Ask user={user} />;
+      case "sign":
+        return <Sign />;
+      case "stories":
+        return <Stories />;
+      case "profile":
+        return <Profile user={user} setTab={setTab} />;
+      case "settings":
+        return <Settings user={user} setTab={setTab} />;
+      default:
+        return <Home user={user} setTab={setTab} />;
+    }
   };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0b0b0b",
-        color: "#fff",
-        fontFamily: "system-ui",
-      }}
-    >
-      <div style={{ width: 320, textAlign: "center" }}>
-        <h1 style={{ color: "#FFD700" }}>Doctor for Books</h1>
-        <p style={{ opacity: 0.7 }}>
-          {isSignup ? "Create account" : "Welcome back"}
-        </p>
+    <div style={styles.app}>
+      {/* SCREEN */}
+      <div style={styles.screen}>{renderScreen()}</div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
+      {/* 🔻 YOUR ORIGINAL NAV ORDER */}
+      <nav style={styles.nav}>
+        <NavBtn
+          icon="🏠"
+          label="Home"
+          active={tab === "home"}
+          onClick={() => setTab("home")}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
+        <NavBtn
+          icon="❓"
+          label="Ask"
+          active={tab === "ask"}
+          onClick={() => setTab("ask")}
         />
 
-        {error && <p style={{ color: "#ff6b6b", fontSize: 14 }}>{error}</p>}
+        <NavBtn
+          icon="🔐"
+          label="Sign"
+          active={tab === "sign"}
+          onClick={() => setTab("sign")}
+        />
 
-        <button onClick={handleAuth} disabled={loading} style={buttonStyle}>
-          {loading ? "Please wait..." : isSignup ? "Create Account" : "Login"}
-        </button>
+        <NavBtn
+          icon="📚"
+          label="Stories"
+          active={tab === "stories"}
+          onClick={() => setTab("stories")}
+        />
 
-        <p
-          onClick={() => setIsSignup(!isSignup)}
-          style={{
-            marginTop: 16,
-            cursor: "pointer",
-            opacity: 0.8,
-          }}
-        >
-          {isSignup
-            ? "Already have an account? Login"
-            : "New here? Create account"}
-        </p>
-      </div>
+        <NavBtn
+          icon="👤"
+          label="Profile"
+          active={tab === "profile"}
+          onClick={() => setTab("profile")}
+        />
+      </nav>
     </div>
   );
 }
 
-const inputStyle = {
-  width: "100%",
-  padding: 12,
-  marginTop: 10,
-  borderRadius: 8,
-  border: "none",
-  outline: "none",
-};
+/* ---------- NAV BUTTON ---------- */
 
-const buttonStyle = {
-  width: "100%",
-  padding: 12,
-  marginTop: 16,
-  background: "#FFD700",
-  border: "none",
-  borderRadius: 8,
-  fontWeight: "bold",
-  cursor: "pointer",
+function NavBtn({ icon, label, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...styles.navBtn,
+        color: active ? "#FFD700" : "#aaa",
+      }}
+    >
+      <div style={{ fontSize: 22 }}>{icon}</div>
+      <small>{label}</small>
+    </button>
+  );
+}
+
+/* ---------- STYLES ---------- */
+
+const styles = {
+  app: {
+    background: "#0b0b0b",
+    color: "white",
+    minHeight: "100vh",
+    fontFamily: "system-ui",
+  },
+
+  screen: {
+    paddingBottom: 80,
+  },
+
+  nav: {
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    background: "#111",
+    borderTop: "1px solid #222",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  navBtn: {
+    background: "none",
+    border: "none",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+
+  loading: {
+    height: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0b0b0b",
+    color: "#fff",
+    textAlign: "center",
+  },
 };
