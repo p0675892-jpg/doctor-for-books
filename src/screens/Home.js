@@ -6,6 +6,7 @@ export default function Home({ user, setTab }) {
   const [streak, setStreak] = useState(1);
   const [checked, setChecked] = useState(false);
 
+  // 🔄 LOAD DATA
   useEffect(() => {
     const load = () => {
       setName(localStorage.getItem("dfb_name") || "Student");
@@ -27,6 +28,9 @@ export default function Home({ user, setTab }) {
   // 📅 DAILY CHECK-IN
   const checkIn = () => {
     const today = new Date().toDateString();
+
+    if (checked) return;
+
     const newXP = xp + 5;
     const newStreak = streak + 1;
 
@@ -39,10 +43,10 @@ export default function Home({ user, setTab }) {
     setChecked(true);
   };
 
-  // 🧑‍⚕️ DR. E VOICE
+  // 🧑‍⚕️ DR. E PERSONALITY
   const messages = [
     "Your brain is warming up nicely 🧠",
-    "Consistency is your superpower 💪",
+    "Consistency beats talent 💪",
     "Tiny progress compounds 🌱",
     "Future you is quietly cheering 📣",
     "Motion beats perfection ✨",
@@ -55,12 +59,20 @@ export default function Home({ user, setTab }) {
     "Confusion is the start of mastery 🧠",
   ];
 
+  const streakPraise = [
+    "WOW — you’re showing serious discipline 🔥",
+    "This streak is not luck… it’s commitment 👏",
+    "Most people would have quit already 💛",
+    "Consistency like this changes lives 🌟",
+  ];
+
   const message = messages[Math.floor(Math.random() * messages.length)];
   const insight = insights[Math.floor(Math.random() * insights.length)];
+  const praise = streakPraise[Math.floor(Math.random() * streakPraise.length)];
 
   return (
     <div style={styles.container}>
-      {/* HEADER */}
+      {/* 🧑‍⚕️ HEADER */}
       <div style={styles.header}>
         <div style={styles.avatar}>🧑‍⚕️</div>
 
@@ -70,7 +82,7 @@ export default function Home({ user, setTab }) {
         </div>
       </div>
 
-      {/* DAILY CHECK-IN */}
+      {/* 📅 DAILY CHECK-IN */}
       <div style={styles.card}>
         <h3>📅 Daily Check-In</h3>
 
@@ -83,70 +95,74 @@ export default function Home({ user, setTab }) {
         )}
       </div>
 
-      {/* PROGRESS */}
+      {/* ⭐ PROGRESS */}
       <div style={styles.card}>
         <h3>⭐ Level {level}</h3>
 
         <div style={styles.bar}>
-          <div style={{ ...styles.fill, width: progress + "%" }} />
+          <div
+            style={{
+              ...styles.fill,
+              width: progress + "%",
+            }}
+          />
         </div>
 
         <small>{progress}% to next level</small>
-        <p style={{ marginTop: 6 }}>🔥 {streak} Day Streak</p>
+
+        <p style={{ marginTop: 6 }}>
+          🔥 {streak} Day Streak — {praise}
+        </p>
       </div>
 
-      {/* MISSION */}
+      {/* 🎯 TODAY'S MISSION */}
       <div style={styles.card}>
         <h3>🎯 Today’s Mission</h3>
-        <p>Ask one question OR complete one lesson</p>
+        <p>Complete ONE meaningful action:</p>
+
+        <ul style={styles.missionList}>
+          <li>Ask Dr. E for help</li>
+          <li>Finish one lesson</li>
+          <li>Read one story</li>
+        </ul>
       </div>
 
-      {/* FOCUS */}
-      <div style={styles.card}>
-        ⚠️ Focus Area: Algebra
-      </div>
+      {/* ⚠️ FOCUS AREA */}
+      <div style={styles.card}>⚠️ Focus Area: Algebra</div>
 
-      {/* INSIGHT */}
+      {/* 💡 INSIGHT */}
       <div style={styles.card}>
         💡 Daily Insight
         <p style={{ marginTop: 6 }}>{insight}</p>
       </div>
 
-      {/* 🚀 QUICK ACTIONS — NOW FUNCTIONAL */}
+      {/* 🚀 QUICK ACTIONS */}
       <div style={styles.actions}>
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("ask")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("ask")}>
           🔍 Ask Dr. E
         </div>
 
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("sign")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("sign")}>
           🤟 Continue Lessons
         </div>
 
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("stories")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("stories")}>
           📖 Read a Story
         </div>
       </div>
 
-      <p style={styles.footer}>
-        “Small effort today = powerful tomorrow 💛”
-      </p>
+      {/* ❤️ FOOTER */}
+      <p style={styles.footer}>“Small effort today = powerful tomorrow 💛”</p>
     </div>
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
   container: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 120,
     overflowY: "auto",
   },
 
@@ -174,6 +190,8 @@ const styles = {
     background: "#FFD700",
     borderRadius: 12,
     fontWeight: "bold",
+    border: "none",
+    cursor: "pointer",
   },
 
   bar: {
@@ -187,6 +205,12 @@ const styles = {
   fill: {
     background: "#FFD700",
     height: "100%",
+  },
+
+  missionList: {
+    marginTop: 8,
+    paddingLeft: 20,
+    opacity: 0.9,
   },
 
   actions: {

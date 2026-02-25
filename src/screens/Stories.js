@@ -34,8 +34,9 @@ export default function Stories() {
 
   const [index, setIndex] = useState(0);
   const [likes, setLikes] = useState({});
+  const [open, setOpen] = useState(false); // ⭐ FIXED
 
-  // ⭐ Random start each day (feels fresh)
+  // ⭐ Daily fresh story + likes load
   useEffect(() => {
     const daySeed = new Date().getDate();
     setIndex(daySeed % stories.length);
@@ -62,18 +63,24 @@ export default function Stories() {
   const story = stories[(index + week) % stories.length];
   const likeCount = likes[story.id] || 0;
 
+  // ⭐ WATTPAD-STYLE FULL READING MODE
   if (open) {
     return (
-      <div style={{ padding: 20 }}>
-        <h2>{story.title}</h2>
-  
-        <div style={{ lineHeight: 1.7 }}>
-          {story.text.repeat(8)}
-        </div>
-  
-        <button onClick={() => setOpen(false)}>
+      <div style={styles.reading}>
+        <button style={styles.backBtn} onClick={() => setOpen(false)}>
           ⬅️ Back
         </button>
+
+        <h2>{story.title}</h2>
+        <small style={{ opacity: 0.7 }}>{story.type}</small>
+
+        <div style={styles.fullText}>
+          {story.text.repeat(8)}
+        </div>
+
+        <p style={{ opacity: 0.7, marginTop: 20 }}>
+          ❤️ {likeCount} readers loved this
+        </p>
       </div>
     );
   }
@@ -98,13 +105,15 @@ export default function Stories() {
         ))}
       </div>
 
-      {/* STORY CARD */}
-      <div style={styles.card}>
+      {/* STORY CARD — TAP TO READ */}
+      <div style={styles.card} onClick={() => setOpen(true)}>
         <small style={styles.type}>{story.type}</small>
 
         <h2>{story.title}</h2>
 
         <div style={styles.textBox}>{story.text}</div>
+
+        <p style={styles.readHint}>Tap to read full story →</p>
       </div>
 
       {/* ACTIONS */}
@@ -132,6 +141,23 @@ export default function Stories() {
 const styles = {
   container: {
     padding: 20,
+    paddingBottom: 120,
+  },
+
+  reading: {
+    padding: 20,
+    paddingBottom: 120,
+  },
+
+  backBtn: {
+    marginBottom: 16,
+    padding: 8,
+  },
+
+  fullText: {
+    marginTop: 12,
+    lineHeight: 1.8,
+    fontSize: 16,
   },
 
   card: {
@@ -139,6 +165,7 @@ const styles = {
     padding: 16,
     borderRadius: 14,
     marginTop: 12,
+    cursor: "pointer",
   },
 
   type: {
@@ -146,10 +173,16 @@ const styles = {
   },
 
   textBox: {
-    maxHeight: 260,
-    overflowY: "auto",
+    maxHeight: 120,
+    overflow: "hidden",
     marginTop: 10,
     lineHeight: 1.6,
+  },
+
+  readHint: {
+    marginTop: 10,
+    opacity: 0.6,
+    fontSize: 12,
   },
 
   actions: {

@@ -1,262 +1,227 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export default function Ask({ user }) {
-  const [q, setQ] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState([]);
-  const inputRef = useRef(null);
+  const [notes, setNotes] = useState("");
+  const [treatment, setTreatment] = useState("");
+  const [streak, setStreak] = useState(0);
+  const [saved, setSaved] = useState(false);
 
-  // ⭐ Quick prompts (viral hook)
-  const quickPrompts = [
-    "Explain photosynthesis simply",
-    "Summarise this topic",
-    "Give exam questions on algebra",
-    "Why is this important?",
-  ];
-
-  // Load weekly history
+  // LOAD STREAK
   useEffect(() => {
-    const h = JSON.parse(localStorage.getItem("dfb_history") || "[]");
-    setHistory(h);
-    inputRef.current?.focus();
+    const s = parseInt(localStorage.getItem("dfb_reflect_streak")) || 0;
+    setStreak(s);
   }, []);
 
-  const askAI = async (question) => {
-    if (!question.trim()) return;
+  // GENERATE PERSONAL TREATMENT (NO AI)
+  function generateTreatment(text) {
+    const t = text.toLowerCase();
 
-    setLoading(true);
+    if (t.includes("math") || t.includes("algebra") || t.includes("equation"))
+      return `🎯 Focus: Mathematics
+✔ Review formulas for 10 minutes
+✔ Solve 2 practice questions
+✔ Explain concept aloud`;
 
-    setMessages((m) => [...m, { role: "user", text: question }]);
+    if (t.includes("english") || t.includes("essay") || t.includes("grammar"))
+      return `🎯 Focus: English
+✔ Read one passage
+✔ Write 5 sentences
+✔ Learn 3 new words`;
 
-    try {
-      const res = await fetch(
-        "https://doctor-for-books-backned--p0675892.replit.app/treatment/ask",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question,
-            uid: user.uid,
-          }),
-        }
-      );
+    if (t.includes("biology") || t.includes("plant") || t.includes("cell"))
+      return `🎯 Focus: Biology
+✔ Review diagrams
+✔ Summarise key idea
+✔ Teach someone`;
 
-      const data = await res.json();
+    if (t.includes("tired") || t.includes("stress") || t.includes("confused"))
+      return `🩹 Recovery Mode
+✔ Rest for 20 minutes
+✔ Drink water
+✔ Do one small task only`;
 
-      if (!res.ok || !data.answer) {
-        throw new Error("AI unavailable");
-      }
-
-      const reply = data.answer;
-
-      setMessages((m) => [...m, { role: "ai", text: reply }]);
-
-      const newHistory = [question, ...history].slice(0, 7);
-      setHistory(newHistory);
-      localStorage.setItem("dfb_history", JSON.stringify(newHistory));
-    } catch {
-      const smartReply = goOfflineAnswer(question);
-
-      setMessages((m) => [
-        ...m,
-        {
-          role: "ai",
-          text: smartReply,
-        },
-      ]);
-    }
-
-    setLoading(false);
-  };
-
-  const simplifyLast = () => {
-    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
-    if (lastUserMsg) {
-      askAI("Explain this in very simple terms: " + lastUserMsg.text);
-    }
-  };
-
-  function getOfflineAnswer(q) {
-    const text = q.toLowerCase();
-
-    if (text.includes("photosynthesis"))
-      return "Photosynthesis is how plants convert sunlight into food and oxygen 🌱";
-
-    if (text.includes("algebra"))
-      return "Algebra is about finding unknown numbers using symbols like x 🔍";
-
-    if (text.includes("essay"))
-      return "A strong essay has introduction, body paragraphs, and conclusion ✍️";
-
-    if (text.includes("study"))
-      return "Short daily study sessions work better than long cramming sessions 🧠";
-
-    return "I'm offline right now, but try breaking the problem into smaller steps. You’ve got this 💛";
+    return `🎯 General Focus
+✔ Review notes for 10 minutes
+✔ Identify one weak area
+✔ Plan tomorrow`;
   }
 
+  // SAVE REFLECTION
+  const saveNotes = () => {
+    if (!notes.trim()) return;
+
+    const today = new Date().toDateString();
+    const last = localStorage.getItem("dfb_reflect_last");
+
+    let newStreak = streak;
+
+    if (last !== today) newStreak += 1;
+
+    localStorage.setItem("dfb_reflect_last", today);
+    localStorage.setItem("dfb_reflect_streak", newStreak);
+
+    setStreak(newStreak);
+    setTreatment(generateTreatment(notes));
+    setSaved(true);
+  };
+
+  // QUICK RELIEF TOOLS
+  const tools = [
+    {
+      title: "🧠 Calm My Mind",
+      text: "Close your eyes. Inhale for 4 seconds… exhale slowly. Your brain resets.",
+    },
+    {
+      title: "⚡ Quick Motivation",
+      text: "Future you is begging you not to quit today 💛",
+    },
+    {
+      title: "📚 Study Tip",
+      text: "Active recall beats rereading every time.",
+    },
+  ];
+
+  const [toolMsg, setToolMsg] = useState("");
+
   return (
-    <div style={{ padding: 20 }}>
-      {/* FLOATING TOOL */}
-      <div style={styles.topTool}>
-        🧮
-        <div style={{ fontSize: 10 }}>Math Soon</div>
+    <div style={styles.container}>
+      <h1>Ask Dr. E 🩺</h1>
+      <p style={{ opacity: 0.7 }}>Real doctors listen first.</p>
+
+      {/* ⭐ STREAK */}
+      <div style={styles.streakBox}>
+        🔥 Reflection Streak: {streak} day{streak !== 1 && "s"}
       </div>
 
-      <h1>Ask Dr. E 🔍</h1>
-      <p style={{ opacity: 0.7 }}>Messy English is fine — I understand 😎</p>
+      {/* 🩺 PATIENT NOTES */}
+      <div style={styles.card}>
+        <h3>📝 Patient Notes</h3>
+        <p style={{ opacity: 0.7 }}>What did you learn today?</p>
 
-      {/* QUICK PROMPTS */}
-      {messages.length === 0 && (
-        <div style={styles.prompts}>
-          {quickPrompts.map((p, i) => (
-            <button key={i} style={styles.promptBtn} onClick={() => askAI(p)}>
-              {p}
-            </button>
-          ))}
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Tell Dr. E about your day in school..."
+          style={styles.textarea}
+        />
+
+        <button style={styles.mainBtn} onClick={saveNotes}>
+          Generate Today’s Treatment
+        </button>
+
+        {saved && <p style={{ marginTop: 8, opacity: 0.8 }}>Notes saved 💛</p>}
+      </div>
+
+      {/* 🎯 TREATMENT */}
+      {treatment && (
+        <div style={styles.card}>
+          <h3>🩺 Today’s Treatment</h3>
+          <pre style={styles.treatment}>{treatment}</pre>
         </div>
       )}
 
-      {/* CHAT */}
-      <div style={styles.chatBox}>
-        {messages.length === 0 && (
-          <p style={{ opacity: 0.6 }}>
-            Tell me what’s confusing you… I don’t judge 😌
-          </p>
-        )}
+      {/* ⚡ QUICK RELIEF TOOLS */}
+      <div style={styles.card}>
+        <h3>⚡ Quick Relief</h3>
 
-        {messages.map((m, i) => (
-          <div
+        {tools.map((t, i) => (
+          <button
             key={i}
-            style={m.role === "user" ? styles.userMsg : styles.aiMsg}
+            style={styles.toolBtn}
+            onClick={() => setToolMsg(t.text)}
           >
-            {m.text}
-          </div>
+            {t.title}
+          </button>
         ))}
 
-        {loading && <p style={{ opacity: 0.7 }}>Dr. E is thinking… 🧠</p>}
+        {toolMsg && <p style={styles.toolMsg}>{toolMsg}</p>}
       </div>
 
-      {/* INPUT */}
-      <input
-        ref={inputRef}
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="What are you struggling with?"
-        style={styles.input}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            askAI(q);
-            setQ("");
-          }
-        }}
-      />
+      {/* 🔒 PREMIUM PREVIEW */}
+      <div style={styles.card}>
+        <h3>🧠 Dr. E Advanced Diagnosis</h3>
 
-      <button
-        style={styles.askBtn}
-        onClick={() => {
-          askAI(q);
-          setQ("");
-        }}
-      >
-        Diagnose
-      </button>
+        <p style={{ opacity: 0.7 }}>
+          Deep analysis of your weak areas, study style, and personalised
+          roadmap.
+        </p>
 
-      {/* SIMPLIFY */}
-      {messages.length > 1 && (
-        <button style={styles.simpleBtn} onClick={simplifyLast}>
-          Explain Simpler
-        </button>
-      )}
+        <button style={styles.lockBtn}>🔒 Coming Soon</button>
+      </div>
 
-      {/* HISTORY */}
-      {history.length > 0 && (
-        <div style={styles.history}>
-          <h3>Recent Questions</h3>
-          {history.map((item, i) => (
-            <p
-              key={i}
-              style={{ cursor: "pointer" }}
-              onClick={() => askAI(item)}
-            >
-              • {item}
-            </p>
-          ))}
-        </div>
-      )}
-
-      <p style={styles.footer}>“Confusion means learning is happening.” 💛</p>
+      <p style={styles.footer}>“Confusion means growth is happening.” 💛</p>
     </div>
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
-  chatBox: {
+  container: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+
+  card: {
     background: "#1a1a1a",
-    padding: 12,
-    borderRadius: 12,
-    minHeight: 220,
-    marginBottom: 12,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 14,
   },
-  userMsg: {
-    textAlign: "right",
-    marginBottom: 8,
-    color: "#FFD700",
-  },
-  aiMsg: {
-    textAlign: "left",
-    marginBottom: 8,
-  },
-  input: {
+
+  textarea: {
     width: "100%",
     padding: 12,
     borderRadius: 10,
+    marginTop: 10,
     marginBottom: 10,
+    minHeight: 80,
   },
-  askBtn: {
+
+  mainBtn: {
     width: "100%",
     padding: 12,
-    marginBottom: 10,
+    background: "#FFD700",
+    borderRadius: 12,
+    fontWeight: "bold",
   },
-  simpleBtn: {
+
+  treatment: {
+    whiteSpace: "pre-wrap",
+    lineHeight: 1.6,
+  },
+
+  toolBtn: {
     width: "100%",
     padding: 10,
-    background: "#333",
-    marginBottom: 12,
+    marginTop: 8,
   },
-  history: {
-    marginTop: 16,
+
+  toolMsg: {
+    marginTop: 12,
     opacity: 0.9,
   },
+
+  lockBtn: {
+    width: "100%",
+    padding: 12,
+    background: "#333",
+    marginTop: 10,
+  },
+
+  streakBox: {
+    background: "#FFD700",
+    color: "#000",
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
   footer: {
     textAlign: "center",
     marginTop: 20,
     opacity: 0.7,
-  },
-  topTool: {
-    position: "fixed",
-    top: 70,
-    right: 16,
-    background: "#FFD700",
-    color: "#000",
-    padding: "10px 12px",
-    borderRadius: 12,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-    zIndex: 1000,
-  },
-  prompts: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 12,
-  },
-  promptBtn: {
-    padding: "6px 10px",
-    borderRadius: 10,
-    border: "none",
-    background: "#333",
-    color: "#fff",
-    fontSize: 12,
-    cursor: "pointer",
   },
 };
