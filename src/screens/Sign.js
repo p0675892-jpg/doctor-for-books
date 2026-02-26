@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { recordWeakArea } from "../utils/weakTracker";
 
 export default function Sign() {
   const [mode, setMode] = useState("menu");
@@ -7,39 +8,61 @@ export default function Sign() {
   const [xp, setXp] = useState(0);
   const [answered, setAnswered] = useState(false);
 
-  // ⭐ LOAD XP
   useEffect(() => {
     const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
     setXp(savedXP);
   }, []);
 
   const addXP = () => {
-    const newXP = xp + 15; // HARDER XP
+    const newXP = xp + 8;
     setXp(newXP);
     localStorage.setItem("dfb_xp", newXP);
   };
 
   const level = Math.floor(xp / 100) + 1;
 
-  // 🤟 SIGN LESSONS
+  // 🤟 SIGN LESSONS WITH REAL DEMONSTRATION IMAGES
   const signLessons = [
     {
-      title: "👋 Greetings",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/ASL_Alphabet.jpg/800px-ASL_Alphabet.jpg",
+      title: "Hello & Thank You",
+      images: [
+        "https://upload.wikimedia.org/wikipedia/commons/5/59/ASL_Hello.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/e/e0/ASL_Thank_You.jpg",
+      ],
       content:
-        "Sign language is a full visual language. Your hands, face, and body communicate meaning.",
-      question: "Which sign means THANK YOU?",
-      options: ["👋", "🙏", "👍"],
-      correct: "🙏",
+        "Sign language relies on clear movement and facial expression. 'Hello' and 'Thank you' are foundational signs used daily.",
+      question: "Which sign expresses gratitude?",
+      options: ["Hello", "Thank you", "Welcome"],
+      correct: "Thank you",
+      type: "Sign Language",
     },
   ];
 
-  // ❤️ EMOTIONAL STORIES
-  const stories = [
-    "A deaf child once said: 'When someone learns my language, I stop feeling invisible.'",
-    "Communication is not sound — it is connection.",
-    "Every sign you learn is a bridge to another human.",
+  // 🗣️ LINGUISTICS LESSONS
+  const langLessons = [
+    {
+      title: "Word Power",
+      content:
+        "Prefixes change meaning dramatically. 'Un-' reverses meaning, 're-' implies repetition, 'pre-' refers to time before.",
+      question: "What does 'preview' mean?",
+      options: ["View before", "View again", "View wrongly"],
+      correct: "View before",
+      type: "Linguistics",
+    },
+  ];
+
+  // 💛 LONG EMOTIONAL STORIES
+  const emotionalStories = [
+    {
+      title: "The Quiet Student",
+      text:
+        "She rarely spoke in class. Not because she had nothing to say, but because words tangled before leaving her mouth. One day she practiced explaining simple ideas clearly. Weeks later, classmates began asking her for help. Her intelligence didn’t suddenly appear — it finally became visible. Communication didn’t change her mind. It changed how the world saw her.",
+    },
+    {
+      title: "Misunderstood",
+      text:
+        "Two students had equal knowledge. One spoke confidently, the other hesitated. Teachers believed the confident one was smarter. In reality, clarity often outruns intelligence. Learning to express ideas doesn’t just improve grades — it reshapes opportunities.",
+    },
   ];
 
   const startLesson = (l) => {
@@ -56,24 +79,13 @@ export default function Sign() {
 
     if (choice === lesson.correct) {
       addXP();
+      recordWeakArea(lesson.type, -1);
 
-      const praises = [
-        "Impressive… not many get that right 😏 +15 XP",
-        "Sharp mind detected 🧠 +15 XP",
-        "Dr. E approves. That wasn't guesswork. +15 XP",
-        "You're dangerous… in a good way 🔥 +15 XP",
-      ];
-
-      setMessage(praises[Math.floor(Math.random() * praises.length)]);
+      setMessage("Correct. Skill confirmed 💛 +8 XP");
     } else {
-      const fails = [
-        "Hmm… are you really smart or just guessing? 😌",
-        "Confidence ≠ correctness. Try learning first.",
-        "Your brain hesitated there. Train it.",
-        "Wrong — but failure builds intelligence.",
-      ];
+      recordWeakArea(lesson.type, 2);
 
-      setMessage(fails[Math.floor(Math.random() * fails.length)]);
+      setMessage("Hmm… accuracy matters. Try understanding, not guessing.");
     }
   };
 
@@ -88,14 +100,18 @@ export default function Sign() {
       {/* MAIN MENU */}
       {mode === "menu" && (
         <>
-          <p>Dr. E: Communication is a superpower ✨</p>
+          <p>Dr. E: Communication shapes how the world treats you ✨</p>
 
           <div style={styles.card} onClick={() => setMode("sign")}>
-            🤟 Sign Language Training
+            🤟 Sign Language Class
+          </div>
+
+          <div style={styles.card} onClick={() => setMode("language")}>
+            🗣️ Linguistics Class
           </div>
 
           <div style={styles.card} onClick={() => setMode("stories")}>
-            ❤️ Emotional Stories
+            💛 Emotional Stories
           </div>
 
           <div style={styles.card} onClick={() => setMode("insight")}>
@@ -104,10 +120,10 @@ export default function Sign() {
         </>
       )}
 
-      {/* SIGN LIST */}
+      {/* SIGN CLASS LIST */}
       {mode === "sign" && (
         <>
-          <h2>Sign Training</h2>
+          <h2>Sign Language Class</h2>
 
           {signLessons.map((l, i) => (
             <div key={i} style={styles.card} onClick={() => startLesson(l)}>
@@ -119,15 +135,32 @@ export default function Sign() {
         </>
       )}
 
+      {/* LINGUISTICS CLASS LIST */}
+      {mode === "language" && (
+        <>
+          <h2>Linguistics Class</h2>
+
+          {langLessons.map((l, i) => (
+            <div key={i} style={styles.card} onClick={() => startLesson(l)}>
+              {l.title}
+            </div>
+          ))}
+
+          <button onClick={() => setMode("menu")}>⬅️ Back</button>
+        </>
+      )}
+
       {/* CLASS VIEW */}
       {mode === "class" && lesson && (
-        <div style={styles.lessonCard}>
+        <div style={styles.card}>
           <h2>{lesson.title}</h2>
 
-          {/* BIG IMAGE */}
-          <img src={lesson.image} style={styles.image} alt="Sign lesson" />
+          {lesson.images &&
+            lesson.images.map((img, i) => (
+              <img key={i} src={img} alt="" style={styles.image} />
+            ))}
 
-          <p style={{ marginTop: 10 }}>{lesson.content}</p>
+          <p>{lesson.content}</p>
 
           <h3>{lesson.question}</h3>
 
@@ -136,27 +169,28 @@ export default function Sign() {
               key={i}
               style={styles.option}
               onClick={() => checkAnswer(o)}
-              disabled={answered}
             >
               {o}
             </button>
           ))}
 
-          {message && <p style={styles.message}>{message}</p>}
+          {message && <p style={{ marginTop: 12 }}>{message}</p>}
 
-          <button style={{ marginTop: 12 }} onClick={() => setMode("menu")}>
-            ⬅️ Back to Menu
-          </button>
+          <button onClick={() => setMode("menu")}>⬅️ Back</button>
         </div>
       )}
 
       {/* STORIES */}
       {mode === "stories" && (
         <>
-          <div style={styles.lessonCard}>
-            <h2>❤️ Human Stories</h2>
-            <p>{stories[Math.floor(Math.random() * stories.length)]}</p>
-          </div>
+          <h2>Emotional Stories</h2>
+
+          {emotionalStories.map((s, i) => (
+            <div key={i} style={styles.card}>
+              <h3>{s.title}</h3>
+              <p style={{ lineHeight: 1.7 }}>{s.text}</p>
+            </div>
+          ))}
 
           <button onClick={() => setMode("menu")}>⬅️ Back</button>
         </>
@@ -165,11 +199,10 @@ export default function Sign() {
       {/* INSIGHTS */}
       {mode === "insight" && (
         <>
-          <div style={styles.lessonCard}>
-            <p>
-              People who communicate clearly are perceived as smarter,
-              more confident, and more trustworthy.
-            </p>
+          <div style={styles.card}>
+            <p>Clear communication increases perceived intelligence.</p>
+            <p>People trust confident speakers more.</p>
+            <p>Understanding language improves thinking itself.</p>
           </div>
 
           <button onClick={() => setMode("menu")}>⬅️ Back</button>
@@ -180,54 +213,35 @@ export default function Sign() {
 }
 
 const styles = {
-  container: {
-    padding: 20,
-    paddingBottom: 100,
-  },
+  container: { padding: 20, paddingBottom: 100 },
 
   xpBox: {
     background: "#FFD700",
     color: "#000",
     padding: 12,
-    borderRadius: 14,
-    marginBottom: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     fontWeight: "bold",
-    textAlign: "center",
   },
 
   card: {
     background: "#1a1a1a",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 14,
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 12,
     cursor: "pointer",
-    fontSize: 18,
-    textAlign: "center",
   },
 
-  lessonCard: {
-    background: "#1a1a1a",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 14,
+  option: {
+    display: "block",
+    marginTop: 8,
+    padding: 12,
+    width: "100%",
   },
 
   image: {
     width: "100%",
     borderRadius: 12,
-    marginTop: 10,
-  },
-
-  option: {
-    display: "block",
-    marginTop: 10,
-    padding: 14,
-    width: "100%",
-    fontSize: 16,
-  },
-
-  message: {
-    marginTop: 12,
-    fontWeight: "bold",
+    marginBottom: 10,
   },
 };
