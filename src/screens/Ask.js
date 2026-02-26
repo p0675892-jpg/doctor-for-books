@@ -86,7 +86,9 @@ export default function Ask({ user }) {
   return (
     <div style={styles.container}>
       <h1>Ask Dr. E 🩺</h1>
-      <p style={{ opacity: 0.7 }}>Real doctors listen first.</p>
+      <p style={{ opacity: 0.7 }}>
+        Real doctors listen first.
+      </p>
 
       {/* ⭐ STREAK */}
       <div style={styles.streakBox}>
@@ -96,7 +98,9 @@ export default function Ask({ user }) {
       {/* 🩺 PATIENT NOTES */}
       <div style={styles.card}>
         <h3>📝 Patient Notes</h3>
-        <p style={{ opacity: 0.7 }}>What did you learn today?</p>
+        <p style={{ opacity: 0.7 }}>
+          What did you learn today?
+        </p>
 
         <textarea
           value={notes}
@@ -109,7 +113,11 @@ export default function Ask({ user }) {
           Generate Today’s Treatment
         </button>
 
-        {saved && <p style={{ marginTop: 8, opacity: 0.8 }}>Notes saved 💛</p>}
+        {saved && (
+          <p style={{ marginTop: 8, opacity: 0.8 }}>
+            Notes saved 💛
+          </p>
+        )}
       </div>
 
       {/* 🎯 TREATMENT */}
@@ -134,7 +142,9 @@ export default function Ask({ user }) {
           </button>
         ))}
 
-        {toolMsg && <p style={styles.toolMsg}>{toolMsg}</p>}
+        {toolMsg && (
+          <p style={styles.toolMsg}>{toolMsg}</p>
+        )}
       </div>
 
       {/* 🔒 PREMIUM PREVIEW */}
@@ -142,14 +152,18 @@ export default function Ask({ user }) {
         <h3>🧠 Dr. E Advanced Diagnosis</h3>
 
         <p style={{ opacity: 0.7 }}>
-          Deep analysis of your weak areas, study style, and personalised
-          roadmap.
+          Deep analysis of your weak areas, study style,
+          and personalised roadmap.
         </p>
 
-        <button style={styles.lockBtn}>🔒 Coming Soon</button>
+        <button style={styles.lockBtn}>
+          🔒 Coming Soon
+        </button>
       </div>
 
-      <p style={styles.footer}>“Confusion means growth is happening.” 💛</p>
+      <p style={styles.footer}>
+        “Confusion means growth is happening.” 💛
+      </p>
     </div>
   );
 }
@@ -205,7 +219,7 @@ const styles = {
   lockBtn: {
     width: "100%",
     padding: 12,
-    background: "#333",
+background: "#333",
     marginTop: 10,
   },
 
