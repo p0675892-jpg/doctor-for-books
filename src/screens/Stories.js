@@ -4,39 +4,84 @@ export default function Stories() {
   const stories = [
     {
       id: 1,
-      title: "The 20-Minute Genius",
-      type: "Educational",
-      text:
-        "Ada studied just 20 minutes every day while others waited for exam season. When exams came, she wasn’t panicking — she was reviewing. Consistency quietly beat intensity.",
+      title: "When Numbers Became Friendly",
+      type: "Math Emotional",
+      sections: [
+        "Ada believed she was bad at maths. Not just weak — fundamentally broken. Numbers felt like strangers speaking a language she never learned.",
+
+        "One afternoon, a quiet teacher told her something strange: 'Math isn’t about being fast. It’s about being patient.'",
+
+        "Instead of rushing, Ada began solving just ONE problem daily. Slowly, numbers stopped attacking her. They started cooperating.",
+
+        "Weeks later, she noticed something shocking — problems that once looked impossible now felt… ordinary.",
+
+        "Confidence didn’t arrive loudly. It crept in quietly, disguised as familiarity.",
+
+        "Ada didn’t become a genius overnight. She became consistent. And consistency did the rest.",
+      ],
     },
+
     {
       id: 2,
       title: "Comma Saves Lives",
       type: "English Funny",
-      text:
-        "A student wrote: 'Let’s eat grandma.' Teacher replied: 'Please use commas. Grammar can prevent cannibalism.'",
+      sections: [
+        "A student proudly submitted an essay containing the sentence: 'Let’s eat grandma.'",
+
+        "The teacher paused. Concerned. Slightly alarmed.",
+
+        "She returned the paper with one correction: 'Please use commas. Grammar can prevent cannibalism.'",
+
+        "From that day forward, the student respected punctuation with near-religious devotion.",
+
+        "Language isn’t just about sounding smart. Sometimes it’s literally about survival.",
+      ],
     },
+
     {
       id: 3,
       title: "The Lazy Neuron",
-      type: "Math Funny",
-      text:
-        "A neuron refused to fire signals until exam day. Unfortunately, by then the brain had declared a state of emergency.",
+      type: "Science Funny",
+      sections: [
+        "Inside one student’s brain lived a neuron named Greg.",
+
+        "Greg had one job: transmit signals during exams.",
+
+        "Unfortunately, Greg preferred naps.",
+
+        "During study sessions, Greg was mysteriously unavailable. During exams, he panicked and attempted to do three months of work in thirty seconds.",
+
+        "The brain filed a formal complaint. Greg promised to improve next semester.",
+
+        "He did not.",
+      ],
     },
+
     {
       id: 4,
       title: "Quiet Strength",
       type: "Emotional",
-      text:
-        "You don’t need to understand everything today. Understanding grows quietly, like roots under soil before a tree appears.",
+      sections: [
+        "Progress rarely feels dramatic while it’s happening.",
+
+        "You don’t suddenly wake up brilliant. You wake up slightly less confused than yesterday.",
+
+        "Learning grows underground first — like roots. Invisible. Slow. Necessary.",
+
+        "One day, without warning, understanding breaks through the surface.",
+
+        "And everyone assumes you were always capable.",
+
+        "They never saw the silent effort.",
+      ],
     },
   ];
 
   const [index, setIndex] = useState(0);
   const [likes, setLikes] = useState({});
-  const [open, setOpen] = useState(false); // ⭐ FIXED
+  const [open, setOpen] = useState(false);
 
-  // ⭐ Daily fresh story + likes load
+  // ⭐ Random start each day
   useEffect(() => {
     const daySeed = new Date().getDate();
     setIndex(daySeed % stories.length);
@@ -47,73 +92,68 @@ export default function Stories() {
     setLikes(savedLikes);
   }, []);
 
+  const story = stories[index];
+  const likeCount = likes[story.id] || 0;
+
   const like = () => {
-    const storyId = stories[index].id;
-    const newLikes = { ...likes, [storyId]: (likes[storyId] || 0) + 1 };
+    const newLikes = {
+      ...likes,
+      [story.id]: (likes[story.id] || 0) + 1,
+    };
 
     setLikes(newLikes);
     localStorage.setItem("dfb_story_likes", JSON.stringify(newLikes));
   };
 
   const nextStory = () => {
+    setOpen(false);
     setIndex((index + 1) % stories.length);
   };
 
-  const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-  const story = stories[(index + week) % stories.length];
-  const likeCount = likes[story.id] || 0;
-
-  // ⭐ WATTPAD-STYLE FULL READING MODE
+  // 📖 FULL READING MODE
   if (open) {
     return (
-      <div style={styles.reading}>
-        <button style={styles.backBtn} onClick={() => setOpen(false)}>
-          ⬅️ Back
-        </button>
-
+      <div style={styles.readContainer}>
         <h2>{story.title}</h2>
         <small style={{ opacity: 0.7 }}>{story.type}</small>
 
-        <div style={styles.fullText}>
-          {story.text.repeat(8)}
+        <div style={styles.longText}>
+          {story.sections.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
         </div>
 
-        <p style={{ opacity: 0.7, marginTop: 20 }}>
-          ❤️ {likeCount} readers loved this
-        </p>
+        <button style={styles.backBtn} onClick={() => setOpen(false)}>
+          ⬅️ Back to Stories
+        </button>
       </div>
     );
   }
 
+  // 📚 STORY LIST MODE
   return (
     <div style={styles.container}>
       <h1>Stories 📖</h1>
+
       <p style={{ opacity: 0.7 }}>
         Small stories. Big understanding.
       </p>
 
-      {/* PROGRESS DOTS */}
-      <div style={styles.dots}>
-        {stories.map((_, i) => (
-          <span
-            key={i}
-            style={{
-              ...styles.dot,
-              background: i === index ? "#FFD700" : "#444",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* STORY CARD — TAP TO READ */}
-      <div style={styles.card} onClick={() => setOpen(true)}>
+      <div style={styles.card}>
         <small style={styles.type}>{story.type}</small>
 
         <h2>{story.title}</h2>
 
-        <div style={styles.textBox}>{story.text}</div>
+        <p>
+          {story.sections[0].slice(0, 140)}...
+        </p>
 
-        <p style={styles.readHint}>Tap to read full story →</p>
+        <button
+          style={styles.readBtn}
+          onClick={() => setOpen(true)}
+        >
+          📖 Read Full Story
+        </button>
       </div>
 
       {/* ACTIONS */}
@@ -123,7 +163,7 @@ export default function Stories() {
         </button>
 
         <button style={styles.nextBtn} onClick={nextStory}>
-          ➡️ Next
+          ➡️ Next Story
         </button>
       </div>
 
@@ -141,23 +181,6 @@ export default function Stories() {
 const styles = {
   container: {
     padding: 20,
-    paddingBottom: 120,
-  },
-
-  reading: {
-    padding: 20,
-    paddingBottom: 120,
-  },
-
-  backBtn: {
-    marginBottom: 16,
-    padding: 8,
-  },
-
-  fullText: {
-    marginTop: 12,
-    lineHeight: 1.8,
-    fontSize: 16,
   },
 
   card: {
@@ -165,24 +188,10 @@ const styles = {
     padding: 16,
     borderRadius: 14,
     marginTop: 12,
-    cursor: "pointer",
   },
 
   type: {
     opacity: 0.7,
-  },
-
-  textBox: {
-    maxHeight: 120,
-    overflow: "hidden",
-    marginTop: 10,
-    lineHeight: 1.6,
-  },
-
-  readHint: {
-    marginTop: 10,
-    opacity: 0.6,
-    fontSize: 12,
   },
 
   actions: {
@@ -201,22 +210,36 @@ const styles = {
     padding: 10,
   },
 
+  readBtn: {
+    marginTop: 12,
+    padding: 10,
+    width: "100%",
+    background: "#FFD700",
+    borderRadius: 10,
+    fontWeight: "bold",
+  },
+
   footer: {
     textAlign: "center",
     marginTop: 20,
     opacity: 0.7,
   },
 
-  dots: {
-    display: "flex",
-    gap: 6,
-    marginTop: 10,
-    justifyContent: "center",
+  readContainer: {
+    padding: 20,
   },
 
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
+  longText: {
+    marginTop: 16,
+    lineHeight: 1.8,
+    fontSize: 16,
+    maxHeight: "65vh",
+    overflowY: "auto",
+  },
+
+  backBtn: {
+    marginTop: 16,
+    padding: 12,
+    width: "100%",
   },
 };
