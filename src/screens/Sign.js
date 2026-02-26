@@ -167,8 +167,8 @@ export default function Sign() {
         <>
           <div style={styles.lessonCard}>
             <p>
-              People who communicate clearly are perceived as smarter, more
-              confident, and more trustworthy.
+              People who communicate clearly are perceived as smarter,
+              more confident, and more trustworthy.
             </p>
           </div>
 
