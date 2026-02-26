@@ -31,10 +31,9 @@ export default function Home({ user, setTab }) {
 
   // 📅 DAILY CHECK-IN
   const checkIn = () => {
-    const today = new Date().toDateString();
-
     if (checked) return;
 
+    const today = new Date().toDateString();
     const newXP = xp + 5;
     const newStreak = streak + 1;
 
@@ -63,90 +62,25 @@ export default function Home({ user, setTab }) {
     "Confusion is the start of mastery 🧠",
   ];
 
-  const streakPraise = [
-    "WOW — you’re showing serious discipline 🔥",
-    "This streak is not luck… it’s commitment 👏",
-    "Most people would have quit already 💛",
-    "Consistency like this changes lives 🌟",
-  ];
-
   const diagnoses = [
-  "Brain overheating detected… prescribing water 💧",
-  "Motivation level low — applying confidence patch 💛",
-  "Overthinking virus found — treatment ongoing 🧠",
-  "Progress detected. Continue immediately 🚀",
-  "Minor confusion spotted — this is how learning starts ✨",
-];
-
-const diagnosis =
-  diagnoses[Math.floor(Math.random() * diagnoses.length)];
+    "Brain overheating detected… prescribing water 💧",
+    "Motivation level low — applying confidence patch 💛",
+    "Overthinking virus found — treatment ongoing 🧠",
+    "Progress detected. Continue immediately 🚀",
+    "Minor confusion spotted — this is how learning starts ✨",
+  ];
 
   const message = messages[Math.floor(Math.random() * messages.length)];
   const insight = insights[Math.floor(Math.random() * insights.length)];
-  const praise =
-    streakPraise[Math.floor(Math.random() * streakPraise.length)];
+  const diagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
 
   return (
     <div style={styles.container}>
-      {/* 🧑‍⚕️ HEADER */}
+      {/* HEADER */}
       <div style={styles.header}>
         <div style={styles.avatar}>
-  <FaUserMd />
-</div>
-    {/* 🩺 DR. E HUMOUR PANEL */}
-<div style={styles.doctorPanel}>
-  <FaUserMd style={{ fontSize: 28 }} />
-
-  <div>
-    <strong>Dr. E Diagnosis:</strong>
-    <p style={{ margin: 0, opacity: 0.8 }}>
-{diagnosis}
-    </p>
-  </div>
-</div>
-
-      // 🧠 SMART DIAGNOSIS ENGINE
-
-const hour = new Date().getHours();
-const lastCheck = localStorage.getItem("dfb_last_check");
-const today = new Date().toDateString();
-
-let diagnosis = "";
-
-// ⏰ TIME OF DAY
-if (hour < 12) {
-  diagnosis = "Morning brain detected ☀️ Perfect time for focus.";
-} else if (hour < 18) {
-  diagnosis = "Afternoon dip incoming 😴 Small wins recommended.";
-} else {
-  diagnosis = "Evening mode 🌙 Gentle review beats heavy study.";
-}
-
-// 🔥 STREAK REACTION
-if (streak >= 7) {
-  diagnosis = `WOW — ${streak} day streak. You're dangerous now 🔥`;
-} else if (streak >= 3) {
-  diagnosis = `${streak} day streak forming… momentum detected ⚡`;
-}
-
-// ⭐ XP LEVEL REACTION
-if (xp >= 500) {
-  diagnosis = "High knowledge density detected 🧠 Proceed with confidence.";
-} else if (xp >= 200) {
-  diagnosis = "Solid progress building 💪 Keep stacking wins.";
-}
-
-// 💤 INACTIVITY CHECK
-if (lastCheck !== today) {
-  diagnosis = "No activity today detected 👀 Tiny action will restart growth.";
-}
-
-// 🎯 WEAK AREA HOOK (static for V1)
-const weakAreas = ["Mathematics", "Physics"];
-
-if (weakAreas.includes("Mathematics")) {
-  diagnosis = "Math anxiety spotted 📉 Short practice recommended.";
-}
+          <FaUserMd />
+        </div>
 
         <div>
           <h1>Hello {name} 👋</h1>
@@ -154,7 +88,16 @@ if (weakAreas.includes("Mathematics")) {
         </div>
       </div>
 
-      {/* 📅 DAILY CHECK-IN */}
+      {/* DR. E PANEL */}
+      <div style={styles.doctorPanel}>
+        <FaUserMd style={{ fontSize: 28 }} />
+        <div>
+          <strong>Dr. E Diagnosis:</strong>
+          <p style={{ margin: 0, opacity: 0.8 }}>{diagnosis}</p>
+        </div>
+      </div>
+
+      {/* DAILY CHECK-IN */}
       <div style={styles.card}>
         <h3><FaBullseye /> Daily Check-In</h3>
 
@@ -167,31 +110,24 @@ if (weakAreas.includes("Mathematics")) {
         )}
       </div>
 
-      {/* ⭐ PROGRESS */}
+      {/* PROGRESS */}
       <div style={styles.card}>
         <h3><FaStar /> Level {level}</h3>
 
         <div style={styles.bar}>
-          <div
-            style={{
-              ...styles.fill,
-              width: progress + "%",
-            }}
-          />
+          <div style={{ ...styles.fill, width: progress + "%" }} />
         </div>
 
         <small>{progress}% to next level</small>
 
         <p style={{ marginTop: 6 }}>
-  <FaFire /> {streak}-day streak — most people quit before this.
-</p>
+          <FaFire /> {streak}-day streak — most people quit before this.
+        </p>
       </div>
 
-      {/* 🎯 TODAY'S MISSION */}
+      {/* TODAY'S MISSION */}
       <div style={styles.card}>
         <h3><FaBullseye /> Today’s Mission</h3>
-        <p>Complete ONE meaningful action:</p>
-
         <ul style={styles.missionList}>
           <li>Ask Dr. E for help</li>
           <li>Finish one lesson</li>
@@ -199,46 +135,33 @@ if (weakAreas.includes("Mathematics")) {
         </ul>
       </div>
 
-      {/* ⚠️ FOCUS AREA */}
+      {/* WEAK AREA */}
       <div style={styles.card}>
         ⚠️ Focus Area: {weakArea}
       </div>
 
-      {/* 💡 INSIGHT */}
+      {/* INSIGHT */}
       <div style={styles.card}>
         <FaBrain /> Daily Insight
         <p style={{ marginTop: 6 }}>{insight}</p>
       </div>
-<div style={styles.card}>
-  🩺 Dr. E Diagnosis
-  <p style={{ marginTop: 6 }}>{diagnosis}</p>
-</div>
 
-      {/* 🚀 QUICK ACTIONS */}
+      {/* QUICK ACTIONS */}
       <div style={styles.actions}>
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("ask")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("ask")}>
           🔍 Ask Dr. E
         </div>
 
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("sign")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("sign")}>
           🤟 Continue Lessons
         </div>
 
-        <div
-          style={styles.actionCard}
-          onClick={() => setTab("stories")}
-        >
+        <div style={styles.actionCard} onClick={() => setTab("stories")}>
           📖 Read a Story
         </div>
       </div>
 
-      {/* ❤️ FOOTER */}
+      {/* FOOTER */}
       <p style={styles.footer}>
         “Small effort today = powerful tomorrow 💛”
       </p>
@@ -246,14 +169,8 @@ if (weakAreas.includes("Mathematics")) {
   );
 }
 
-/* ---------- STYLES ---------- */
-
 const styles = {
-  container: {
-    padding: 20,
-    paddingBottom: 120,
-    overflowY: "auto",
-  },
+  container: { padding: 20, paddingBottom: 120, overflowY: "auto" },
 
   header: {
     display: "flex",
@@ -263,7 +180,6 @@ const styles = {
   },
 
   avatar: { fontSize: 52 },
-
   sub: { opacity: 0.7 },
 
   card: {
@@ -286,21 +202,14 @@ const styles = {
   bar: {
     background: "#333",
     height: 12,
-borderRadius: 10,
+    borderRadius: 10,
     overflow: "hidden",
     marginTop: 8,
   },
 
-  fill: {
-    background: "#FFD700",
-    height: "100%",
-  },
+  fill: { background: "#FFD700", height: "100%" },
 
-  missionList: {
-    marginTop: 8,
-    paddingLeft: 20,
-    opacity: 0.9,
-  },
+  missionList: { marginTop: 8, paddingLeft: 20, opacity: 0.9 },
 
   actions: {
     display: "flex",
@@ -319,22 +228,16 @@ borderRadius: 10,
     cursor: "pointer",
   },
 
-  footer: {
-    textAlign: "center",
-    marginTop: 20,
-    opacity: 0.7,
-  },
+  footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
 
   doctorPanel: {
-  display: "flex",
-  gap: 12,
-  alignItems: "center",
-  background: "#121212",
-  padding: 14,
-  borderRadius: 16,
-  marginBottom: 14,
-  border: "1px solid #222",
-},
+    display: "flex",
+    gap: 12,
+    alignItems: "center",
+    background: "#121212",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 14,
+    border: "1px solid #222",
+  },
 };
-
-
