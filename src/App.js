@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { auth } from "./firebase";
+import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 
-import AuthScreen from "./AuthScreen";
+import Sign from "./screens/Sign";
 import Home from "./screens/Home";
 import Ask from "./screens/Ask";
-import Sign from "./screens/Sign";       // ✋ Sign Hub
 import Stories from "./screens/Stories";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
 
 export default function App() {
   const [user, setUser] = useState(undefined);
-  const [tab, setTab] = useState("ask"); // ⭐ Start on Ask (best UX)
+  const [tab, setTab] = useState("home");
 
-  // 🔐 AUTH CHECK
+  // 🔐 FIREBASE AUTH
   useEffect(() => {
     let resolved = false;
 
@@ -38,20 +37,24 @@ export default function App() {
     };
   }, []);
 
-  // ⏳ Loading screen
+  // 🌑 LOADING
   if (user === undefined) {
     return (
       <div style={styles.loading}>
-        <h2>Doctor for Books 🧠</h2>
-        <p>Preparing your study space...</p>
+        <div>
+          <h2>Doctor for Books 🧠</h2>
+          <p style={{ opacity: 0.7 }}>
+            Preparing your study space…
+          </p>
+        </div>
       </div>
     );
   }
 
-  // 🚪 Not logged in
-  if (!user) return <AuthScreen />;
+  // 🚪 NOT SIGNED IN
+  if (!user) return <Sign />;
 
-  // 🧭 Screen router
+  // 🧭 SCREEN ROUTER
   const renderScreen = () => {
     switch (tab) {
       case "home":
@@ -59,71 +62,119 @@ export default function App() {
       case "ask":
         return <Ask user={user} />;
       case "sign":
-        return <Sign user={user} />;
+        return <Sign />;
       case "stories":
-        return <Stories user={user} />;
+        return <Stories />;
       case "profile":
-        return <Profile user={user} />;
-      default:
-        return <Ask user={user} />;
+        return <Profile user={user} setTab={setTab} />;
       case "settings":
-        return <Settings />;
+        return <Settings user={user} setTab={setTab} />;
+      default:
+        return <Home user={user} setTab={setTab} />;
     }
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.app}>
+      {/* SCREEN */}
       <div style={styles.screen}>{renderScreen()}</div>
 
-      {/* 🔻 5-TAB BOTTOM NAV */}
+      {/* 🔻 YOUR ORIGINAL NAV ORDER */}
       <nav style={styles.nav}>
-        <NavBtn label="🏠" text="Home" active={tab === "home"} onClick={() => setTab("home")} />
-        <NavBtn label="❓" text="Ask" active={tab === "ask"} onClick={() => setTab("ask")} />
-        <NavBtn label="✋" text="Sign" active={tab === "sign"} onClick={() => setTab("sign")} />
-        <NavBtn label="📚" text="Stories" active={tab === "stories"} onClick={() => setTab("stories")} />
-        <NavBtn label="👤" text="Profile" active={tab === "profile"} onClick={() => setTab("profile")} />
+        <NavBtn
+          icon="🏠"
+          label="Home"
+          active={tab === "home"}
+          onClick={() => setTab("home")}
+        />
+
+        <NavBtn
+          icon="❓"
+          label="Ask"
+          active={tab === "ask"}
+          onClick={() => setTab("ask")}
+        />
+
+        <NavBtn
+          icon="🔐"
+          label="Sign"
+          active={tab === "sign"}
+          onClick={() => setTab("sign")}
+        />
+
+        <NavBtn
+          icon="📚"
+          label="Stories"
+          active={tab === "stories"}
+          onClick={() => setTab("stories")}
+        />
+
+        <NavBtn
+          icon="👤"
+          label="Profile"
+          active={tab === "profile"}
+          onClick={() => setTab("profile")}
+        />
       </nav>
     </div>
   );
 }
 
-// ⭐ Reusable button
-function NavBtn({ label, text, active, onClick }) {
+/* ---------- NAV BUTTON ---------- */
+
+function NavBtn({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
       style={{
-        background: "none",
-        border: "none",
+        ...styles.navBtn,
         color: active ? "#FFD700" : "#aaa",
-        fontSize: 12,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
       }}
     >
-      <span style={{ fontSize: 20 }}>{label}</span>
-      {text}
+      <div style={{ fontSize: 22 }}>{icon}</div>
+      <small>{label}</small>
     </button>
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
-  container: {
-    minHeight: "100vh",
+  app: {
     background: "#0b0b0b",
-    color: "#fff",
-    display: "flex",
-    flexDirection: "column",
+    color: "white",
+    minHeight: "100vh",
+    fontFamily: "system-ui",
   },
-  screen: { flex: 1, padding: 20 },
+
+  screen: {
+    paddingBottom: 80,
+  },
+
   nav: {
-    display: "flex",
-    justifyContent: "space-around",
-    padding: 10,
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
     background: "#111",
     borderTop: "1px solid #222",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    zIndex: 999,
   },
+
+  navBtn: {
+    background: "none",
+    border: "none",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+
   loading: {
     height: "100vh",
     display: "flex",

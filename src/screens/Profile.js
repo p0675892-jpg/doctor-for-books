@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
 export default function Profile({ setTab, user }) {
-
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(false);
   const [xp, setXp] = useState(0);
 
   const progress = 65;
+
   const strongAreas = ["English", "Reading", "Biology"];
   const weakAreas = ["Mathematics", "Physics"];
 
@@ -30,14 +30,14 @@ export default function Profile({ setTab, user }) {
 
   return (
     <div style={styles.page}>
-
       {/* HEADER */}
       <div style={styles.header}>
         <h2>Profile 👤</h2>
 
+        {/* ⚙️ SETTINGS */}
         <button
           style={styles.settingsBtn}
-          onClick={() => setTab("settings")}
+          onClick={() => setTab && setTab("settings")}
         >
           ⚙️
         </button>
@@ -47,9 +47,7 @@ export default function Profile({ setTab, user }) {
       <div style={styles.mascot}>🩺📚 Dr. E</div>
 
       {/* GREETING */}
-      <p style={styles.greeting}>
-        Dr. E: Keep going — progress compounds 💛
-      </p>
+      <p style={styles.greeting}>Dr. E: Keep going — progress compounds 💛</p>
 
       {/* NAME */}
       <div style={styles.nameBox}>
@@ -67,10 +65,7 @@ export default function Profile({ setTab, user }) {
         ) : (
           <>
             <h3>{name}</h3>
-            <button
-              style={styles.editBtn}
-              onClick={() => setEditing(true)}
-            >
+            <button style={styles.editBtn} onClick={() => setEditing(true)}>
               Edit Name
             </button>
           </>
@@ -90,7 +85,7 @@ export default function Profile({ setTab, user }) {
           <div
             style={{
               ...styles.progressFill,
-              width: progress + "%"
+              width: progress + "%",
             }}
           />
         </div>
@@ -103,7 +98,7 @@ export default function Profile({ setTab, user }) {
         <h3>Strong Areas 💪</h3>
         {strongAreas.map((item) => (
           <div key={item} style={styles.good}>
-            {item}
+            ✓ {item}
           </div>
         ))}
       </div>
@@ -113,12 +108,12 @@ export default function Profile({ setTab, user }) {
         <h3>Focus Areas 🎯</h3>
         {weakAreas.map((item) => (
           <div key={item} style={styles.bad}>
-            {item}
+            ⚠ {item}
           </div>
         ))}
       </div>
 
-      <div style={{ height: 40 }} />
+      <div style={{ height: 60 }} />
     </div>
   );
 }
@@ -132,13 +127,13 @@ const styles = {
     background: "#0b0b0b",
     minHeight: "100vh",
     overflowY: "auto",
-    fontFamily: "system-ui"
+    fontFamily: "system-ui",
   },
 
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
   },
 
   settingsBtn: {
@@ -146,63 +141,64 @@ const styles = {
     border: "none",
     color: "white",
     fontSize: 18,
-    padding: "6px 10px",
-    borderRadius: 8,
-    cursor: "pointer"
+    padding: "8px 12px",
+    borderRadius: 10,
+    cursor: "pointer",
   },
 
   mascot: {
-    fontSize: 28,
+    fontSize: 30,
     textAlign: "center",
-    margin: "20px 0"
+    margin: "20px 0",
   },
 
   greeting: {
     textAlign: "center",
     opacity: 0.7,
-    marginBottom: 10
+    marginBottom: 12,
   },
 
   nameBox: {
     textAlign: "center",
-    marginBottom: 20
+    marginBottom: 20,
   },
 
   editBtn: {
     background: "#f5c542",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: 8,
-    cursor: "pointer"
+    padding: "8px 14px",
+    borderRadius: 10,
+    cursor: "pointer",
   },
 
   saveBtn: {
     background: "#4caf50",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: 8,
-    cursor: "pointer"
+    padding: "8px 14px",
+    borderRadius: 10,
+    cursor: "pointer",
   },
 
   input: {
     padding: 8,
-    borderRadius: 6,
+    borderRadius: 8,
     border: "none",
-    marginRight: 8
+    marginRight: 8,
   },
 
   xpBox: {
     background: "#FFD700",
     color: "#000",
-    padding: 10,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 14,
     marginBottom: 20,
     textAlign: "center",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    fontSize: 16,
   },
 
   section: {
-    marginBottom: 25
+    marginBottom: 25,
   },
 
   progressBar: {
@@ -210,25 +206,25 @@ const styles = {
     height: 14,
     background: "#222",
     borderRadius: 10,
-    overflow: "hidden"
+    overflow: "hidden",
   },
 
   progressFill: {
     height: "100%",
-    background: "#f5c542"
+    background: "#f5c542",
   },
 
   good: {
     background: "#163b16",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
   },
 
   bad: {
     background: "#3b1616",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8
-  }
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
 };
