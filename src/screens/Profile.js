@@ -1,189 +1,305 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function Profile({ setTab }) {
-  const [name, setName] = useState(
-    localStorage.getItem("dfb_name") || "Student"
-  );
-  const [edit, setEdit] = useState(false);
+export default function Profile({ setTab, user }) {
+  const [name, setName] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [xp, setXp] = useState(0);
 
-  const [streak, setStreak] = useState(3);
-  const [questions, setQuestions] = useState(12);
-  const premium =
-    localStorage.getItem("dfb_premium") === "1";
+  const progress = 65;
+  const strongAreas = ["English", "Reading", "Biology"];
+  const weakAreas = ["Mathematics", "Physics"];
+
+  // LOAD DATA
+  useEffect(() => {
+    const savedName = localStorage.getItem("dfb_name");
+    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
+
+    setXp(savedXP);
+
+    if (savedName) setName(savedName);
+    else setName(user?.email?.split("@")[0] || "Student");
+  }, [user]);
 
   const saveName = () => {
     localStorage.setItem("dfb_name", name);
-    setEdit(false);
+    setEditing(false);
   };
 
-  const encouragements = [
-    "You’re building real intelligence 🧠",
-    "Consistency beats panic studying 💪",
-    "Your future self is grateful already ✨",
-    "Small progress is still progress 🌱"
-  ];
-
-  const message =
-    encouragements[
-      Math.floor(Math.random() * encouragements.length)
-    ];
-
-  const progress = Math.min(
-    Math.floor((questions / 50) * 100),
-    100
-  );
+  const level = Math.floor(xp / 100) + 1;
 
   return (
-    <div style={styles.container}>
-      <h1>Profile 👤</h1>
+    <div style={styles.page}>
 
-      {/* AVATAR */}
-      <div style={styles.avatar}>🧑‍⚕️</div>
+      {/* HEADER */}
+      <div style={styles.header}>
+        <div>
+          <h2 style={styles.title}>Profile</h2>
+          <p style={styles.subtitle}>Your learning identity</p>
+        </div>
+
+        <button
+          style={styles.settingsBtn}
+          onClick={() => setTab("settings")}
+        >
+          ⚙
+        </button>
+      </div>
+
+      {/* DR. E IDENTITY CARD */}
+      <div style={styles.identityCard}>
+        <div style={styles.avatar}>DR·E</div>
+
+        <div>
+          <div style={styles.identityTitle}>Study Companion</div>
+          <div style={styles.identitySub}>
+            Calm. Precise. Slightly judging.
+          </div>
+        </div>
+      </div>
 
       {/* NAME */}
-      {edit ? (
-        <>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={styles.input}
-          />
-          <button onClick={saveName}>Save</button>
-        </>
-      ) : (
-        <>
-          <h2>{name}</h2>
-          <button onClick={() => setEdit(true)}>
-            ✏️ Edit Name
-          </button>
-        </>
-      )}
+      <div style={styles.nameBox}>
+        {editing ? (
+          <>
+            <input
+              style={styles.input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
 
-      {/* PLAN */}
-      <div style={styles.plan}>
-        {premium
-          ? "💎 Premium Member"
-          : "🟡 Free Plan"}
+            <button style={styles.saveBtn} onClick={saveName}>
+              Save
+            </button>
+          </>
+        ) : (
+          <>
+            <h3 style={styles.name}>{name}</h3>
+
+            <button
+              style={styles.editBtn}
+              onClick={() => setEditing(true)}
+            >
+              Edit name
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* LEVEL + XP */}
+      <div style={styles.levelCard}>
+        <div style={styles.levelText}>
+          Level {level}
+        </div>
+
+        <div style={styles.xpText}>
+          {xp} XP accumulated
+        </div>
       </div>
 
       {/* PROGRESS */}
-      <div style={styles.card}>
-        <h3>Progress</h3>
+      <div style={styles.section}>
+        <h3 className="sectionTitle">Overall Progress</h3>
 
-        <div style={styles.bar}>
+        <div style={styles.progressBar}>
           <div
             style={{
-              ...styles.fill,
-              width: progress + "%"
+              ...styles.progressFill,
+              width: progress + "%",
             }}
           />
         </div>
 
-        <small>{progress}% engagement</small>
+        <p style={styles.progressText}>
+          {progress}% mastery
+        </p>
       </div>
 
-      {/* STATS */}
-      <div style={styles.card}>
-        🔥 Streak: {streak} days
-      </div>
+      {/* STRONG AREAS */}
+      <div style={styles.section}>
+        <h3>Strong Areas</h3>
 
-      <div style={styles.card}>
-        📊 Questions Asked: {questions}
-      </div>
-
-      <div style={styles.card}>
-        ⚠️ Needs Work: Algebra
-      </div>
-
-      {/* ENCOURAGEMENT */}
-      <div style={styles.message}>
-        {message}
-      </div>
-
-      {/* UPGRADE */}
-      {!premium && (
-        <div
-          style={styles.upgrade}
-          onClick={() => setTab("settings")}
-        >
-          💎 Upgrade to Premium
+        <div style={styles.grid}>
+          {strongAreas.map((item) => (
+            <div key={item} style={styles.goodCard}>
+              {item}
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* SETTINGS */}
-      <button
-        style={styles.settings}
-        onClick={() => setTab("settings")}
-      >
-        ⚙️ Settings
-      </button>
+      {/* FOCUS AREAS */}
+      <div style={styles.section}>
+        <h3>Focus Areas</h3>
+
+        <div style={styles.grid}>
+          {weakAreas.map((item) => (
+            <div key={item} style={styles.badCard}>
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ height: 40 }} />
     </div>
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const styles = {
-  container: {
-    padding: 20
+  page: {
+    padding: 20,
+    background: "#0b0b0f",
+    color: "white",
+    minHeight: "100vh",
+    fontFamily: "system-ui",
+    overflowY: "auto",
+  },
+
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  title: {
+    margin: 0,
+  },
+
+  subtitle: {
+    margin: 0,
+    opacity: 0.6,
+    fontSize: 13,
+  },
+
+  settingsBtn: {
+    background: "#1a1a1f",
+    border: "none",
+    color: "white",
+    padding: "8px 12px",
+    borderRadius: 10,
+    cursor: "pointer",
+  },
+
+  identityCard: {
+    display: "flex",
+    gap: 14,
+    alignItems: "center",
+    background: "#151518",
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 20,
   },
 
   avatar: {
-    fontSize: 70,
+    background: "#FFD700",
+    color: "#000",
+    fontWeight: "bold",
+    padding: 12,
+    borderRadius: 12,
+  },
+
+  identityTitle: {
+    fontWeight: "bold",
+  },
+
+  identitySub: {
+    opacity: 0.6,
+    fontSize: 13,
+  },
+
+  nameBox: {
     textAlign: "center",
-    margin: "20px 0"
+    marginTop: 20,
+  },
+
+  name: {
+    marginBottom: 6,
+  },
+
+  editBtn: {
+    background: "#FFD700",
+    border: "none",
+    padding: "6px 14px",
+    borderRadius: 10,
+    cursor: "pointer",
+  },
+
+  saveBtn: {
+    background: "#4caf50",
+    border: "none",
+    padding: "6px 14px",
+    borderRadius: 10,
+    cursor: "pointer",
   },
 
   input: {
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
-    marginBottom: 10
+    border: "none",
+    marginRight: 8,
   },
 
-  plan: {
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#FFD700"
-  },
-
-  card: {
-    background: "#1a1a1a",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12
-  },
-
-  bar: {
-    background: "#333",
-    height: 10,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 8
-  },
-
-  fill: {
-    background: "#FFD700",
-    height: "100%"
-  },
-
-  message: {
-    textAlign: "center",
-    opacity: 0.8,
-    marginTop: 12
-  },
-
-  upgrade: {
+  levelCard: {
     background: "#FFD700",
     color: "#000",
     padding: 14,
-    borderRadius: 12,
+    borderRadius: 14,
+    marginTop: 20,
     textAlign: "center",
-    marginTop: 16,
-    cursor: "pointer",
-    fontWeight: "bold"
   },
 
-  settings: {
-    marginTop: 12,
+  levelText: {
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+
+  xpText: {
+    fontSize: 13,
+  },
+
+  section: {
+    marginTop: 28,
+  },
+
+  progressBar: {
+    width: "100%",
+    height: 14,
+    background: "#1a1a1f",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginTop: 8,
+  },
+
+  progressFill: {
+    height: "100%",
+    background: "#FFD700",
+  },
+
+  progressText: {
+    opacity: 0.7,
+    marginTop: 6,
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 10,
+    marginTop: 10,
+  },
+
+  goodCard: {
+    background: "#162d16",
     padding: 12,
-    width: "100%"
-  }
-  };
+    borderRadius: 12,
+    textAlign: "center",
+  },
+
+  badCard: {
+    background: "#2d1616",
+    padding: 12,
+    borderRadius: 12,
+    textAlign: "center",
+  },
+};
