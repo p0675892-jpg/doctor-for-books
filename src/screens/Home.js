@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { FaUserMd, FaFire, FaStar, FaBullseye, FaBrain } from "react-icons/fa";
+import { getWeakArea } from "../utils/weakTracker";
 
 export default function Home({ user, setTab }) {
   const [name, setName] = useState("Student");
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(1);
   const [checked, setChecked] = useState(false);
+  const [weakArea, setWeakArea] = useState("General Studies");
 
   // 🔄 LOAD DATA
   useEffect(() => {
@@ -12,6 +15,7 @@ export default function Home({ user, setTab }) {
       setName(localStorage.getItem("dfb_name") || "Student");
       setXp(parseInt(localStorage.getItem("dfb_xp")) || 0);
       setStreak(parseInt(localStorage.getItem("dfb_streak")) || 1);
+      setWeakArea(getWeakArea());
 
       const today = new Date().toDateString();
       setChecked(localStorage.getItem("dfb_last_check") === today);
@@ -66,6 +70,17 @@ export default function Home({ user, setTab }) {
     "Consistency like this changes lives 🌟",
   ];
 
+  const diagnoses = [
+  "Brain overheating detected… prescribing water 💧",
+  "Motivation level low — applying confidence patch 💛",
+  "Overthinking virus found — treatment ongoing 🧠",
+  "Progress detected. Continue immediately 🚀",
+  "Minor confusion spotted — this is how learning starts ✨",
+];
+
+const diagnosis =
+  diagnoses[Math.floor(Math.random() * diagnoses.length)];
+
   const message = messages[Math.floor(Math.random() * messages.length)];
   const insight = insights[Math.floor(Math.random() * insights.length)];
   const praise =
@@ -75,17 +90,73 @@ export default function Home({ user, setTab }) {
     <div style={styles.container}>
       {/* 🧑‍⚕️ HEADER */}
       <div style={styles.header}>
-        <div style={styles.avatar}>🧑‍⚕️</div>
+        <div style={styles.avatar}>
+  <FaUserMd />
+</div>
+    {/* 🩺 DR. E HUMOUR PANEL */}
+<div style={styles.doctorPanel}>
+  <FaUserMd style={{ fontSize: 28 }} />
+
+  <div>
+    <strong>Dr. E Diagnosis:</strong>
+    <p style={{ margin: 0, opacity: 0.8 }}>
+{diagnosis}
+    </p>
+  </div>
+</div>
+
+      // 🧠 SMART DIAGNOSIS ENGINE
+
+const hour = new Date().getHours();
+const lastCheck = localStorage.getItem("dfb_last_check");
+const today = new Date().toDateString();
+
+let diagnosis = "";
+
+// ⏰ TIME OF DAY
+if (hour < 12) {
+  diagnosis = "Morning brain detected ☀️ Perfect time for focus.";
+} else if (hour < 18) {
+  diagnosis = "Afternoon dip incoming 😴 Small wins recommended.";
+} else {
+  diagnosis = "Evening mode 🌙 Gentle review beats heavy study.";
+}
+
+// 🔥 STREAK REACTION
+if (streak >= 7) {
+  diagnosis = `WOW — ${streak} day streak. You're dangerous now 🔥`;
+} else if (streak >= 3) {
+  diagnosis = `${streak} day streak forming… momentum detected ⚡`;
+}
+
+// ⭐ XP LEVEL REACTION
+if (xp >= 500) {
+  diagnosis = "High knowledge density detected 🧠 Proceed with confidence.";
+} else if (xp >= 200) {
+  diagnosis = "Solid progress building 💪 Keep stacking wins.";
+}
+
+// 💤 INACTIVITY CHECK
+if (lastCheck !== today) {
+  diagnosis = "No activity today detected 👀 Tiny action will restart growth.";
+}
+
+// 🎯 WEAK AREA HOOK (static for V1)
+const weakAreas = ["Mathematics", "Physics"];
+
+if (weakAreas.includes("Mathematics")) {
+  diagnosis = "Math anxiety spotted 📉 Short practice recommended.";
+}
 
         <div>
           <h1>Hello {name} 👋</h1>
-          <p style={styles.sub}>Dr. E: {message}</p>
+          <p style={styles.sub}>Dr. E says: {message}</p>
         </div>
       </div>
 
       {/* 📅 DAILY CHECK-IN */}
       <div style={styles.card}>
-        <h3>📅 Daily Check-In</h3>
+        <h3><FaBullseye /> Daily Check-In</h3>
 
         {checked ? (
           <p>✅ Ritual complete today</p>
@@ -98,7 +169,7 @@ export default function Home({ user, setTab }) {
 
       {/* ⭐ PROGRESS */}
       <div style={styles.card}>
-        <h3>⭐ Level {level}</h3>
+        <h3><FaStar /> Level {level}</h3>
 
         <div style={styles.bar}>
           <div
@@ -112,13 +183,13 @@ export default function Home({ user, setTab }) {
         <small>{progress}% to next level</small>
 
         <p style={{ marginTop: 6 }}>
-          🔥 {streak} Day Streak — {praise}
-        </p>
+  <FaFire /> {streak}-day streak — most people quit before this.
+</p>
       </div>
 
       {/* 🎯 TODAY'S MISSION */}
       <div style={styles.card}>
-        <h3>🎯 Today’s Mission</h3>
+        <h3><FaBullseye /> Today’s Mission</h3>
         <p>Complete ONE meaningful action:</p>
 
         <ul style={styles.missionList}>
@@ -130,14 +201,18 @@ export default function Home({ user, setTab }) {
 
       {/* ⚠️ FOCUS AREA */}
       <div style={styles.card}>
-        ⚠️ Focus Area: Algebra
+        ⚠️ Focus Area: {weakArea}
       </div>
 
       {/* 💡 INSIGHT */}
       <div style={styles.card}>
-        💡 Daily Insight
+        <FaBrain /> Daily Insight
         <p style={{ marginTop: 6 }}>{insight}</p>
       </div>
+<div style={styles.card}>
+  🩺 Dr. E Diagnosis
+  <p style={{ marginTop: 6 }}>{diagnosis}</p>
+</div>
 
       {/* 🚀 QUICK ACTIONS */}
       <div style={styles.actions}>
@@ -249,4 +324,16 @@ borderRadius: 10,
     marginTop: 20,
     opacity: 0.7,
   },
+
+  doctorPanel: {
+  display: "flex",
+  gap: 12,
+  alignItems: "center",
+  background: "#121212",
+  padding: 14,
+  borderRadius: 16,
+  marginBottom: 14,
+  border: "1px solid #222",
+},
 };
+
