@@ -1,230 +1,189 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Profile({ setTab, user }) {
-  const [name, setName] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [xp, setXp] = useState(0);
+export default function Profile({ setTab }) {
+  const [name, setName] = useState(
+    localStorage.getItem("dfb_name") || "Student"
+  );
+  const [edit, setEdit] = useState(false);
 
-  const progress = 65;
-
-  const strongAreas = ["English", "Reading", "Biology"];
-  const weakAreas = ["Mathematics", "Physics"];
-
-  // LOAD DATA
-  useEffect(() => {
-    const savedName = localStorage.getItem("dfb_name");
-    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
-
-    setXp(savedXP);
-
-    if (savedName) setName(savedName);
-    else setName(user?.email?.split("@")[0] || "Student");
-  }, [user]);
+  const [streak, setStreak] = useState(3);
+  const [questions, setQuestions] = useState(12);
+  const premium =
+    localStorage.getItem("dfb_premium") === "1";
 
   const saveName = () => {
     localStorage.setItem("dfb_name", name);
-    setEditing(false);
+    setEdit(false);
   };
 
-  const level = Math.floor(xp / 100) + 1;
+  const encouragements = [
+    "You’re building real intelligence 🧠",
+    "Consistency beats panic studying 💪",
+    "Your future self is grateful already ✨",
+    "Small progress is still progress 🌱"
+  ];
+
+  const message =
+    encouragements[
+      Math.floor(Math.random() * encouragements.length)
+    ];
+
+  const progress = Math.min(
+    Math.floor((questions / 50) * 100),
+    100
+  );
 
   return (
-    <div style={styles.page}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <h2>Profile 👤</h2>
+    <div style={styles.container}>
+      <h1>Profile 👤</h1>
 
-        {/* ⚙️ SETTINGS */}
-        <button
-          style={styles.settingsBtn}
-          onClick={() => setTab && setTab("settings")}
-        >
-          ⚙️
-        </button>
-      </div>
-
-      {/* MASCOT */}
-      <div style={styles.mascot}>🩺📚 Dr. E</div>
-
-      {/* GREETING */}
-      <p style={styles.greeting}>Dr. E: Keep going — progress compounds 💛</p>
+      {/* AVATAR */}
+      <div style={styles.avatar}>🧑‍⚕️</div>
 
       {/* NAME */}
-      <div style={styles.nameBox}>
-        {editing ? (
-          <>
-            <input
-              style={styles.input}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button style={styles.saveBtn} onClick={saveName}>
-              Save
-            </button>
-          </>
-        ) : (
-          <>
-            <h3>{name}</h3>
-            <button style={styles.editBtn} onClick={() => setEditing(true)}>
-              Edit Name
-            </button>
-          </>
-        )}
-      </div>
+      {edit ? (
+        <>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={styles.input}
+          />
+          <button onClick={saveName}>Save</button>
+        </>
+      ) : (
+        <>
+          <h2>{name}</h2>
+          <button onClick={() => setEdit(true)}>
+            ✏️ Edit Name
+          </button>
+        </>
+      )}
 
-      {/* LEVEL + XP */}
-      <div style={styles.xpBox}>
-        ⭐ Level {level} — {xp} XP
+      {/* PLAN */}
+      <div style={styles.plan}>
+        {premium
+          ? "💎 Premium Member"
+          : "🟡 Free Plan"}
       </div>
 
       {/* PROGRESS */}
-      <div style={styles.section}>
-        <h3>Overall Progress</h3>
+      <div style={styles.card}>
+        <h3>Progress</h3>
 
-        <div style={styles.progressBar}>
+        <div style={styles.bar}>
           <div
             style={{
-              ...styles.progressFill,
-              width: progress + "%",
+              ...styles.fill,
+              width: progress + "%"
             }}
           />
         </div>
 
-        <p>{progress}% mastery</p>
+        <small>{progress}% engagement</small>
       </div>
 
-      {/* STRONG AREAS */}
-      <div style={styles.section}>
-        <h3>Strong Areas 💪</h3>
-        {strongAreas.map((item) => (
-          <div key={item} style={styles.good}>
-            ✓ {item}
-          </div>
-        ))}
+      {/* STATS */}
+      <div style={styles.card}>
+        🔥 Streak: {streak} days
       </div>
 
-      {/* WEAK AREAS */}
-      <div style={styles.section}>
-        <h3>Focus Areas 🎯</h3>
-        {weakAreas.map((item) => (
-          <div key={item} style={styles.bad}>
-            ⚠ {item}
-          </div>
-        ))}
+      <div style={styles.card}>
+        📊 Questions Asked: {questions}
       </div>
 
-      <div style={{ height: 60 }} />
+      <div style={styles.card}>
+        ⚠️ Needs Work: Algebra
+      </div>
+
+      {/* ENCOURAGEMENT */}
+      <div style={styles.message}>
+        {message}
+      </div>
+
+      {/* UPGRADE */}
+      {!premium && (
+        <div
+          style={styles.upgrade}
+          onClick={() => setTab("settings")}
+        >
+          💎 Upgrade to Premium
+        </div>
+      )}
+
+      {/* SETTINGS */}
+      <button
+        style={styles.settings}
+        onClick={() => setTab("settings")}
+      >
+        ⚙️ Settings
+      </button>
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
-
 const styles = {
-  page: {
-    padding: 20,
-    color: "white",
-    background: "#0b0b0b",
-    minHeight: "100vh",
-    overflowY: "auto",
-    fontFamily: "system-ui",
+  container: {
+    padding: 20
   },
 
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  settingsBtn: {
-    background: "#222",
-    border: "none",
-    color: "white",
-    fontSize: 18,
-    padding: "8px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  mascot: {
-    fontSize: 30,
+  avatar: {
+    fontSize: 70,
     textAlign: "center",
-    margin: "20px 0",
-  },
-
-  greeting: {
-    textAlign: "center",
-    opacity: 0.7,
-    marginBottom: 12,
-  },
-
-  nameBox: {
-    textAlign: "center",
-    marginBottom: 20,
-  },
-
-  editBtn: {
-    background: "#f5c542",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  saveBtn: {
-    background: "#4caf50",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
+    margin: "20px 0"
   },
 
   input: {
-    padding: 8,
+    padding: 10,
     borderRadius: 8,
-    border: "none",
-    marginRight: 8,
+    marginBottom: 10
   },
 
-  xpBox: {
-    background: "#FFD700",
-    color: "#000",
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 20,
+  plan: {
     textAlign: "center",
-    fontWeight: "bold",
-    fontSize: 16,
+    marginBottom: 20,
+    color: "#FFD700"
   },
 
-  section: {
-    marginBottom: 25,
+  card: {
+    background: "#1a1a1a",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12
   },
 
-  progressBar: {
-    width: "100%",
-    height: 14,
-    background: "#222",
+  bar: {
+    background: "#333",
+    height: 10,
     borderRadius: 10,
     overflow: "hidden",
+    marginTop: 8
   },
 
-  progressFill: {
-    height: "100%",
-    background: "#f5c542",
+  fill: {
+    background: "#FFD700",
+    height: "100%"
   },
 
-  good: {
-    background: "#163b16",
+  message: {
+    textAlign: "center",
+    opacity: 0.8,
+    marginTop: 12
+  },
+
+  upgrade: {
+    background: "#FFD700",
+    color: "#000",
+    padding: 14,
+    borderRadius: 12,
+    textAlign: "center",
+    marginTop: 16,
+    cursor: "pointer",
+    fontWeight: "bold"
+  },
+
+  settings: {
+    marginTop: 12,
     padding: 12,
-    borderRadius: 10,
-    marginBottom: 8,
-  },
-
-  bad: {
-    background: "#3b1616",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 8,
-  },
-};
+    width: "100%"
+  }
+  };
