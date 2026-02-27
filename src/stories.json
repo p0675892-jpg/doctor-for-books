@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "title": "When Numbers Became Friendly",
+    "type": "Math Emotional",
+    "category": "Educational",
+    "sections": [
+      "Ada believed she was bad at maths...",
+      "One afternoon, a quiet teacher told her..."
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Comma Saves Lives",
+    "type": "English Funny",
+    "category": "Funny",
+    "sections": [
+      "A student proudly submitted an essay...",
+      "The teacher paused. Concerned..."
+    ]
+  }
+]
