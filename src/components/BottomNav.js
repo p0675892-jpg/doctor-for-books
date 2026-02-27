@@ -22,12 +22,17 @@ export default function BottomNav({ tab, setTab }) {
               ...styles.button,
               ...(active ? styles.activeButton : {}),
             }}
+            aria-label={t.label}
+  aria-current={active ? "page" : undefined}
+  role="tab"
+  aria-selected={active}
+    tabIndex={0}
           >
             <div style={styles.icon}>{t.icon}</div>
             <div
               style={{
                 ...styles.label,
-                color: active ? "#FFD700" : "#aaa,                 
+                color: active ? "#FFD700" : "#aaa",                 
               }}
             >
               {t.label}
@@ -73,9 +78,11 @@ const styles = {
   icon: {
     fontSize:22,
     marginBottom: 4,
+    display: 'block',
   },
   label: {
     fontSize: 12,
     fontWeight: 600,
   },
 };
+
