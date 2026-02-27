@@ -71,7 +71,7 @@ const styles = {
     filter: "drop-shadow(0 0 10px rgba(255,215,0,0.7))",
   },
   icon: {
-    frontSize:22,
+    fontSize:22,
     marginBottom: 4,
   },
   label: {
