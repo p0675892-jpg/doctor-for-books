@@ -1,197 +1,169 @@
 import { useState } from "react";
-import { auth } from "./firebase";
-
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
+import { auth } from "./firebase";
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState("login"); // login or signup
+  const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // 🔐 AUTH HANDLER
-  const handleAuth = async () => {
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleLogin = async () => {
     if (!email || !password) {
-      alert("Please enter email and password");
+      showToast("Please enter email and password.");
       return;
     }
-
     setLoading(true);
-
     try {
-      if (mode === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      let message = "Something went wrong";
-
-      switch (error.code) {
-        case "auth/wrong-password":
-          message = "Incorrect password";
-          break;
-
-        case "auth/user-not-found":
-          message = "Account not found";
-          break;
-
-        case "auth/email-already-in-use":
-          message = "Email already registered";
-          break;
-
-        case "auth/weak-password":
-          message = "Password must be at least 6 characters";
-          break;
-
-        case "auth/invalid-email":
-          message = "Invalid email address";
-          break;
-
-        case "auth/network-request-failed":
-          message = "Network error. Check internet";
-          break;
-
-        default:
-          message = "Authentication failed";
-      }
-
-      alert(message);
+      showError(error);
     }
-
     setLoading(false);
   };
 
+  const handleSignup = async () => {
+    if (!email || !password) {
+      showToast("Please enter email and password.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      showError(error);
+    }
+    setLoading(false);
+  };
+
+  const showError = (error) => {
+    let message = "Something went wrong. Try again.";
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        message = "Account already exists. Try logging in.";
+        break;
+      case "auth/invalid-email":
+        message = "Please enter a valid email address.";
+        break;
+      case "auth/weak-password":
+        message = "Password should be at least 6 characters.";
+        break;
+      case "auth/user-not-found":
+        message = "No account found with this email.";
+        break;
+      case "auth/wrong-password":
+        message = "Incorrect password.";
+        break;
+      case "auth/network-request-failed":
+        message = "Check your internet connection.";
+        break;
+      default:
+        console.error("Unhandled error:", error);
+    }
+    showToast(message);
+  };
+
   return (
-    <div style={styles.container}>
-      {/* 🩺 APP TITLE */}
-      <h1 style={styles.title}>Doctor for Books 🧠</h1>
-
-      <p style={styles.subtitle}>
-        {mode === "login"
-          ? "Welcome back — let's continue healing your learning"
-          : "Create your learning account"}
-      </p>
-
-      {/* 📧 EMAIL */}
-      <input
-        type="email"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={styles.input}
-      />
-
-      {/* 🔒 PASSWORD */}
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={styles.input}
-      />
-
-      {/* 🚀 MAIN BUTTON */}
-      <button
-        onClick={handleAuth}
-        style={styles.button}
-        disabled={loading}
-      >
-        {loading
-          ? "Please wait..."
-          : mode === "login"
-          ? "Login"
-          : "Create Account"}
-      </button>
-
-      {/* 🔄 SWITCH MODE */}
-      <p style={styles.switchText}>
-        {mode === "login"
-          ? "Don't have an account?"
-          : "Already have an account?"}
-      </p>
-
-      <button
-        onClick={() =>
-          setMode(mode === "login" ? "signup" : "login")
-        }
-        style={styles.switchBtn}
-      >
-        {mode === "login"
-          ? "Create Account"
-          : "Back to Login"}
-      </button>
+    <div style={styles.page}>
+      {toast && <div style={styles.toast}>{toast}</div>}
+      <div style={styles.card}>
+        <h2>Doctor for Books 🧠</h2>
+        <h3>{mode === "login" ? "Welcome back" : "Create account"}</h3>
+        <input
+          style={styles.input}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          style={styles.mainBtn}
+          onClick={mode === "login" ? handleLogin : handleSignup}
+          disabled={loading}
+        >
+          {loading ? "Please wait..." : mode === "login" ? "Login" : "Create Account"}
+        </button>
+        <p style={{ marginTop: 12 }}>
+          {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+        </p>
+        <button
+          style={styles.switchBtn}
+          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+        >
+          {mode === "login" ? "Sign Up" : "Login"}
+        </button>
+      </div>
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
-
 const styles = {
-  container: {
+  page: {
     minHeight: "100vh",
-    background: "#0b0b0b",
-    color: "white",
+    background: "         
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    justifyContent: "center",
+    color: "white",
     fontFamily: "system-ui",
   },
-
-  title: {
-    fontSize: 32,
-    marginBottom: 8,
+  card: {
+    background: "#1a1a1a",
+    padding: 24,
+    borderRadius: 16,
+    width: 320,
     textAlign: "center",
   },
-
-  subtitle: {
-    opacity: 0.7,
-    marginBottom: 30,
-    textAlign: "center",
-  },
-
   input: {
     width: "100%",
-    maxWidth: 320,
-    padding: 14,
-    marginBottom: 12,
-    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+    borderRadius: 10,
     border: "none",
-    background: "#1a1a1a",
-    color: "white",
-    fontSize: 16,
   },
-
-  button: {
+  mainBtn: {
     width: "100%",
-    maxWidth: 320,
-    padding: 14,
-    background: "#FFD700",
-    border: "none",
+    padding: 12,
+    marginTop: 16,
+    background: "         
+    color: "#000",
     borderRadius: 12,
+    border: "none",
     fontWeight: "bold",
     cursor: "pointer",
-    fontSize: 16,
+  },
+  switchBtn: {
+    background: "none",
+    border: "none",
+    color: "         
+    cursor: "pointer",
     marginTop: 6,
   },
-
-  switchText: {
-    marginTop: 18,
-    opacity: 0.7,
-  },
-
-  switchBtn: {
-    background: "transparent",
-    border: "none",
-    color: "#FFD700",
-    cursor: "pointer",
-    fontWeight: "bold",
-    marginTop: 4,
+  toast: {
+    position: "fixed",
+    bottom: 20,
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#333",
+    color: "white",
+    padding: "10px 20px",
+    borderRadius: 8,
+    zIndex: 100,
   },
 };
