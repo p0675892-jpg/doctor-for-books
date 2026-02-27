@@ -89,6 +89,9 @@ export default function Stories() {
         <button style={styles.nextBtn} onClick={nextStory}>
           ➡️ Next Story
         </button>
+        <button style={styles.surpriseBtn} onClick={() => setIndex(Math.floor(Math.random() * filteredStories.length))}>
+          🎲 Surprise me
+        </button>
       </div>
       <p style={{ opacity: 0.7 }}>
         {likeCount} readers loved this
@@ -101,7 +104,65 @@ export default function Stories() {
 }
 
 const styles = {
-                             
+  container: {
+    padding: 20,
+  },
+  card: {
+    background: "#1a1a1a",
+    padding: 16,
+    borderRadius: 14,
+    marginTop: 12,
+  },
+  type: {
+    opacity: 0.7,
+  },
+  actions: {
+    display: "flex",
+    gap: 10,
+    marginTop: 14,
+  },
+  likeBtn: {
+    flex: 1,
+    padding: 10,
+  },
+  nextBtn: {
+    flex: 1,
+    padding: 10,
+  },
+  surpriseBtn: {
+    padding: 10,
+    background: "         
+    borderRadius: 8,
+    color: "white",
+  },
+  readBtn: {
+    marginTop: 12,
+    padding: 10,
+    width: "100%",
+    background: "#FFD700",
+    borderRadius: 10,
+    fontWeight: "bold",
+  },
+  footer: {
+    textAlign: "center",
+    marginTop: 20,
+    opacity: 0.7,
+  },
+  readContainer: {
+    padding: 20,
+  },
+  longText: {
+    marginTop: 16,
+    lineHeight: 1.8,
+    fontSize: 16,
+    maxHeight: "65vh",
+    overflowY: "auto",
+  },
+  backBtn: {
+    marginTop: 16,
+    padding: 12,
+    width: "100%",
+  },
   tabs: {
     display: "flex",
     gap: 8,
