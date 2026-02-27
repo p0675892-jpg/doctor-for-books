@@ -1,11 +1,12 @@
 import React from "react";
+import { FaHome, FaBrain, FaBook, FaHandPaper, FaUser } from 'react-icons/fa';
 
 const tabs = [
-  { id: "home", label: "Home", icon: "🏠" },
-  { id: "ask", label: "Ask", icon: "🧠" },
-  { id: "stories", label: "Stories", icon: "📚" },
-  { id: "sign", label: "Sign", icon: "🤟" },
-  { id: "profile", label: "Profile", icon: "👤" },
+  { id: "home", label: "Home", icon: <FaHome size={22} /> },
+  { id: "ask", label: "Ask", icon: <FaBrain size={22} /> },
+  { id: "stories", label: "Stories", icon: <FaBook size={22} /> },
+  { id: "sl", label: "SL", icon: <FaHandPaper size={22} /> },
+  { id: "profile", label: "Profile", icon: <FaUser size={22} /> },
 ];
 
 export default function BottomNav({ tab, setTab }) {
@@ -13,7 +14,6 @@ export default function BottomNav({ tab, setTab }) {
     <div style={styles.container}>
       {tabs.map((t) => {
         const active = tab === t.id;
-
         return (
           <button
             key={t.id}
@@ -24,11 +24,10 @@ export default function BottomNav({ tab, setTab }) {
             }}
           >
             <div style={styles.icon}>{t.icon}</div>
-
             <div
               style={{
                 ...styles.label,
-                color: active ? "#FFD700" : "#aaa",
+                color: active ? "#FFD700" : "#aaa,                 
               }}
             >
               {t.label}
@@ -55,7 +54,6 @@ const styles = {
     borderTop: "1px solid rgba(255,215,0,0.25)",
     zIndex: 999,
   },
-
   button: {
     flex: 1,
     height: "100%",
@@ -68,17 +66,14 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.25s ease",
   },
-
   activeButton: {
     transform: "translateY(-5px)",
     filter: "drop-shadow(0 0 10px rgba(255,215,0,0.7))",
   },
-
   icon: {
-    fontSize: 22,
+    frontSize:22,
     marginBottom: 4,
   },
-
   label: {
     fontSize: 12,
     fontWeight: 600,
