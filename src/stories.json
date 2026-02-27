@@ -1,12 +1,15 @@
 [
   {
     "id": 1,
-    "title": "When Numbers Became Friendly",
-    "type": "Math Emotional",
+    "title": "The Power of Yet",
+    "type": "Growth Mindset",
     "category": "Educational",
     "sections": [
-      "Ada believed she was bad at maths...",
-      "One afternoon, a quiet teacher told her..."
+      "A young student stared at a tricky math problem. Her mind went blank. 'I can't do this,' she whispered.",
+      "Her teacher overheard and smiled gently. 'You can't do it YET,' she said.",
+      "'Yet means you're learning,' she explained. 'Like a seed growing into a tree.'",
+      "The student tried again. Slowly, numbers started making sense. She felt a spark.",
+      "From that day, 'yet' became her favorite word. It reminded her: with time, she could do anything."
     ]
   },
   {
@@ -15,8 +18,79 @@
     "type": "English Funny",
     "category": "Funny",
     "sections": [
-      "A student proudly submitted an essay...",
-      "The teacher paused. Concerned..."
+      "A hungry student wrote an essay. In it: 'Let's eat grandma'.",
+      "The teacher read it and gasped. 'Oh no! Cannibalism?'",
+      "She added a comma: 'Let's eat, grandma'.",
+      "Grandma was safe. Punctuation saved the day!",
+      "Moral: commas matter (literally)."
+    ]
+  },
+  {
+    "id": 3,
+    "title": "The Tree of Thoughts",
+    "type": "Mindfulness",
+    "category": "Educational",
+    "sections": [
+      "Imagine a tree with many branches. Each branch is a thought.",
+      "Some branches are beautiful (like 'be kind'). Some are messy (like 'I'm late').",
+      "A wise gardener prunes messy branches daily. What thoughts will you prune today?",
+      "With practice, your mind becomes a peaceful garden."
+    ]
+  },
+  {
+    "id": 4,
+    "title": "The Curious Coin",
+    "type": "Logic Puzzle",
+    "category": "Puzzle",
+    "sections": [
+      "You have 3 coins: 1 is fake (lighter).",
+      "Find the fake coin in 1 weighing.",
+      "Think: how would you do it?",
+      "Weigh 2 coins. If one’s lighter, it’s fake. If balanced, the 3rd is fake."
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Procrastination Party",
+    "type": "Productivity Funny",
+    "category": "Funny",
+    "sections": [
+      "Procrastination threw a party. Friends came: Distraction, Netflix, Sleep.",
+      "They danced all night. Next morning… deadlines didn’t care.",
+      "Moral: parties end, deadlines don’t."
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Small Wins Add Up",
+    "type": "Motivation",
+    "category": "Educational",
+    "sections": [
+      "Imagine climbing a mountain. One step at a time.",
+      "Small wins build big achievements.",
+      "Consistency > perfection."
+    ]
+  },
+  {
+    "id": 7,
+    "title": "The Missing Puzzle Piece",
+    "type": "Problem-Solving",
+    "category": "Puzzle",
+    "sections": [
+      "A puzzle had 1 piece missing.",
+      "Everyone searched. The answer was simple: it was under the rug.",
+      "Sometimes solutions are right where you least expect."
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Mistakes Are Fuel",
+    "type": "Growth Mindset",
+    "category": "Educational",
+    "sections": [
+      "A student failed a test. 'I’m bad at math,' he thought.",
+      "But his teacher said, 'Mistakes fuel progress.'",
+      "He tried again, smarter each time."
     ]
   }
 ]
