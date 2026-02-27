@@ -26,7 +26,7 @@ export default function Sl() {
     {
       title: "Hello & Thank You",
       images: [
-        "https:                                                             
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/ASL Hello.jpg/800px-ASL Hello.jpg",                                                           
         "https://upload.wikimedia.org/wikipedia/commons/e/e0/ASL_Thank_You.jpg",
       ],
       content: "Sign language relies on clear movement and facial expression. 'Hello' and 'Thank you' are foundational signs used daily.",
@@ -38,7 +38,7 @@ export default function Sl() {
     {
       title: "Common Phrases",
       images: [
-        "https:                                                                                                 
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/ASL_I_Love_You.jpg/800px-ASL_I_Love_You.jpg",                                                                                                
       ],
       content: "Learn essential phrases to connect with the Deaf community.",
       question: "What's the ASL sign for 'I love you'?",
@@ -199,7 +199,7 @@ const styles = {
   },
   xpBox: {
     background: "#FFD700",
-    color: "      
+    color: "#000",     
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -224,4 +224,3 @@ const styles = {
     marginBottom: 10,
   },
 };
-
