@@ -140,7 +140,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "         
+    background: "#0b0b0b",         
     color: "#fff",
     textAlign: "center",
   },
