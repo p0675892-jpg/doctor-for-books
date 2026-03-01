@@ -14,56 +14,47 @@ export default function App() {
   const [user, setUser] = useState(undefined);
   const [tab, setTab] = useState("home");
 
-  // 🔐 FIREBASE AUTH
+  // 🔐 Firebase Auth
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => 
-        setUser(u || null);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u || null);
     });
-    return () => { 
+    return () => {
       unsub();
     };
   }, []);
 
-  // 🌑 LOADING
+  // 🌑 Loading
   if (user === undefined) {
     return (
       <div style={styles.loading}>
         <div>
           <h2>Doctor for Books 🧠</h2>
-          <p style={{ opacity: 0.7 }}> Preparing your study space… </p>
+          <p style={{ opacity: 0.7 }}>Preparing your study space…</p>
         </div>
       </div>
     );
   }
 
-  // 🚪 NOT SIGNED IN
+  // 🚪 Not signed in
   if (!user) return <Sign />;
 
-  // 🧭 SCREEN ROUTER
+  // 🧭 Screen Router
   const renderScreen = () => {
     switch (tab) {
-      case "home":
-        return <Home user={user} setTab={setTab} />;
-      case "ask":
-        return <Ask user={user} />;
-      case "sl":
-        return <Sl />;
-      case "stories":
-        return <Stories />;
-      case "profile":
-        return <Profile user={user} setTab={setTab} />;
-      case "settings":
-        return <Settings user={user} setTab={setTab} />;
-      default:
-        return <Home user={user} setTab={setTab} />;
+      case "home": return <Home user={user} setTab={setTab} />;
+      case "ask": return <Ask user={user} />;
+      case "sl": return <Sl />;
+      case "stories": return <Stories />;
+      case "profile": return <Profile user={user} setTab={setTab} />;
+      case "settings": return <Settings user={user} setTab={setTab} />;
+      default: return <Home user={user} setTab={setTab} />;
     }
   };
 
   return (
     <div style={styles.app}>
-      {/* SCREEN */}
       <div style={styles.screen}>{renderScreen()}</div>
-      {/* NAV */}
       <nav style={styles.nav}>
         <NavBtn icon={<FaHome size={22} />} label="Home" active={tab === "home"} onClick={() => setTab("home")} />
         <NavBtn icon={<FaQuestionCircle size={22} />} label="Ask" active={tab === "ask"} onClick={() => setTab("ask")} />
@@ -75,14 +66,14 @@ export default function App() {
   );
 }
 
-/* ---------- NAV BUTTON ---------- */
+// ---------- Nav Button ----------
 function NavBtn({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
       style={{
         ...styles.navBtn,
-        color: active ? "#D4AF37" : #888",                 
+        color: active ? "#FFD700" : "#888", // Gold active, gray inactive
       }}
     >
       <div style={{ fontSize: 22 }}>{icon}</div>
@@ -91,10 +82,9 @@ function NavBtn({ icon, label, active, onClick }) {
   );
 }
 
-                                  
 const styles = {
   app: {
-    background: "#0b0b0b",
+    background: "#000", // Black background
     color: "white",
     minHeight: "100vh",
     fontFamily: "system-ui",
@@ -108,7 +98,7 @@ const styles = {
     left: 0,
     right: 0,
     height: 70,
-    background: "#000",     
+    background: "#000",
     borderTop: "1px solid #222",
     display: "flex",
     justifyContent: "space-around",
@@ -129,7 +119,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#0b0b0b",         
+    background: "#0b0b0b",
     color: "#fff",
     textAlign: "center",
   },
