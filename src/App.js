@@ -7,6 +7,7 @@ import Ask from "./screens/Ask";
 import Stories from "./screens/Stories";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
+import storiesData from "./screens/stories.json";
 import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser } from 'react-icons/fa';
 
 export default function App() {
