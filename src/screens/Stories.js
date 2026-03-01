@@ -57,7 +57,7 @@ export default function Stories() {
             key={cat}
             style={{
               ...styles.tabBtn,
-              background: activeCategory === cat ? "#FFD700" : #1a1a1a"                     
+              background: activeCategory === cat ? "#FFD700" : #1a1a1a",                    
             }}
             onClick={() => setActiveCategory(cat)}
           >
@@ -131,7 +131,7 @@ const styles = {
   },
   surpriseBtn: {
     padding: 10,
-    background: "         
+    background: "#222",         
     borderRadius: 8,
     color: "white",
   },
