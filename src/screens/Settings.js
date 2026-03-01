@@ -127,7 +127,7 @@ export default function Settings({ setTab, user }) {
 const styles = {
   page: {
     padding: 20,
-    background: "         
+    background: "#000",         
     color: "white",
     minHeight: "100vh",
     fontFamily: "system-ui",
@@ -150,13 +150,13 @@ const styles = {
     marginBottom: 26,
   },
   card: {
-    background: "         
+    background: "#000",         
     padding: 16,
     borderRadius: 14,
   },
   premiumCard: {
     background: "#FFD700",
-    color: "      
+    color: "#FFD700",      
     padding: 16,
     borderRadius: 14,
   },
@@ -188,7 +188,7 @@ const styles = {
   logout: {
     width: "100%",
     padding: 14,
-    background: "         
+    background: "#222",         
     color: "#ff7a7a",
     border: "none",
     borderRadius: 12,
@@ -200,3 +200,4 @@ const styles = {
     marginBottom: 10,
   },
 };
+
