@@ -16,22 +16,11 @@ export default function App() {
 
   // 🔐 FIREBASE AUTH
   useEffect(() => {
-    let resolved = false;
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!resolved) {
-        resolved = true;
+    const unsub = onAuthStateChanged(auth, (u) => 
         setUser(u || null);
-      }
     });
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        setUser(null);
-      }
-    }, 5000);
-    return () => {
+    return () => { 
       unsub();
-      clearTimeout(timeout);
     };
   }, []);
 
@@ -93,7 +82,7 @@ function NavBtn({ icon, label, active, onClick }) {
       onClick={onClick}
       style={{
         ...styles.navBtn,
-        color: active ? "                  
+        color: active ? "#D4AF37" : #888",                 
       }}
     >
       <div style={{ fontSize: 22 }}>{icon}</div>
@@ -119,7 +108,7 @@ const styles = {
     left: 0,
     right: 0,
     height: 70,
-    background: "      
+    background: "#000",     
     borderTop: "1px solid #222",
     display: "flex",
     justifyContent: "space-around",
