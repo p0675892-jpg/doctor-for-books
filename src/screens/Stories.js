@@ -57,7 +57,7 @@ export default function Stories() {
             key={cat}
             style={{
               ...styles.tabBtn,
-              background: activeCategory === cat ? "                     
+              background: activeCategory === cat ? "#FFD700" : #1a1a1a"                     
             }}
             onClick={() => setActiveCategory(cat)}
           >
