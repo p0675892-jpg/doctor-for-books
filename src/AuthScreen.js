@@ -116,7 +116,7 @@ export default function AuthScreen() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "         
+    background: "#0b0b0b", // dark gray background
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -136,12 +136,14 @@ const styles = {
     marginTop: 12,
     borderRadius: 10,
     border: "none",
+    background: "#333",
+    color: "white",
   },
   mainBtn: {
     width: "100%",
     padding: 12,
     marginTop: 16,
-    background: "         
+    background: "#FFD700", // gold
     color: "#000",
     borderRadius: 12,
     border: "none",
@@ -151,7 +153,7 @@ const styles = {
   switchBtn: {
     background: "none",
     border: "none",
-    color: "         
+    color: "#FFD700", // gold
     cursor: "pointer",
     marginTop: 6,
   },
