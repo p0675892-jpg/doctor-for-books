@@ -2,16 +2,22 @@ import { useState, useEffect } from "react";
 import storiesData from './stories.json';
 
 export default function Stories() {
-  const stories = storiesData;
+  // 🔹 Initialize stories
+  const stories = storiesData || [];
   const categories = [...new Set(stories.map(s => s.category))];
-  const [activeCategory, setActiveCategory] = useState(categories[0]);
+  const [activeCategory, setActiveCategory] = useState(categories[0] || "");
   const [index, setIndex] = useState(0);
   const [likes, setLikes] = useState({});
   const [open, setOpen] = useState(false);
 
-  const filteredStories = stories.filter(s => s.category === activeCategory);
-  const story = filteredStories[index];
+  // 🔹 Hydrate likes from localStorage
+  useEffect(() => {
+    const savedLikes = JSON.parse(localStorage.getItem("dfb_story_likes") || "{}");
+    setLikes(savedLikes);
+  }, []);
 
+  const filteredStories = stories.filter(s => s.category === activeCategory);
+  const story = filteredStories[index] || null;
   const likeCount = story ? (likes[story.id] || 0) : 0;
 
   const like = () => {
@@ -23,7 +29,17 @@ export default function Stories() {
 
   const nextStory = () => {
     setOpen(false);
+    if (filteredStories.length === 0) return;
     setIndex((index + 1) % filteredStories.length);
+  };
+
+  const surpriseStory = () => {
+    if (filteredStories.length <= 1) return;
+    let next;
+    do {
+      next = Math.floor(Math.random() * filteredStories.length);
+    } while (next === index);
+    setIndex(next);
   };
 
   // 📖 FULL READING MODE
@@ -48,7 +64,7 @@ export default function Stories() {
   return (
     <div style={styles.container}>
       <h1>Stories 📖</h1>
-      <p style={{ opacity: 0.7 }}> Small stories. Big understanding. </p>
+      <p style={{ opacity: 0.7 }}>Small stories. Big understanding.</p>
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -57,9 +73,12 @@ export default function Stories() {
             key={cat}
             style={{
               ...styles.tabBtn,
-              background: activeCategory === cat ? "#FFD700" : "#1a1a1a"                   
+              background: activeCategory === cat ? "#FFD700" : "#1a1a1a",
             }}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => {
+              setActiveCategory(cat);
+              setIndex(0); // Reset index when changing category
+            }}
           >
             {cat}
           </button>
@@ -70,9 +89,7 @@ export default function Stories() {
         <div style={styles.card}>
           <small style={styles.type}>{story.type}</small>
           <h2>{story.title}</h2>
-          <p>
-            {story.sections[0].slice(0, 140)}...
-          </p>
+          <p>{story.sections[0].slice(0, 140)}...</p>
           <button style={styles.readBtn} onClick={() => setOpen(true)}>
             📖 Read Full Story
           </button>
@@ -81,7 +98,6 @@ export default function Stories() {
         <p>No stories in this category 😔</p>
       )}
 
-      {             }
       <div style={styles.actions}>
         <button style={styles.likeBtn} onClick={like}>
           ❤️ Like
@@ -89,22 +105,22 @@ export default function Stories() {
         <button style={styles.nextBtn} onClick={nextStory}>
           ➡️ Next Story
         </button>
-        <button style={styles.surpriseBtn} onClick={() => setIndex(Math.floor(Math.random() * filteredStories.length))}>
+        <button style={styles.surpriseBtn} onClick={surpriseStory}>
           🎲 Surprise me
         </button>
       </div>
-      <p style={{ opacity: 0.7 }}>
-        {likeCount} readers loved this
-      </p>
-      <p style={styles.footer}>
-        “Stories teach what facts can’t.” 💛
-      </p>
+
+      <p style={{ opacity: 0.7 }}>{likeCount} readers loved this</p>
+      <p style={styles.footer}>“Stories teach what facts can’t.” 💛</p>
     </div>
   );
 }
 
 const styles = {
   container: {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
     padding: 20,
   },
   card: {
@@ -130,8 +146,9 @@ const styles = {
     padding: 10,
   },
   surpriseBtn: {
+    flex: 1,
     padding: 10,
-    background: "#1a1a1a",         
+    background: "#1a1a1a",
     borderRadius: 8,
     color: "white",
   },
