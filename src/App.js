@@ -6,7 +6,7 @@ import Home from "./screens/Home";
 import Ask from "./screens/Ask";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
-import AuthScreen from "./auth"; // ✅ Your sign-in screen
+import AuthScreen from "./AuthScreen"; // ✅ Your sign-in screen
 import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser } from 'react-icons/fa';
 
 // Lazy load Stories for faster mobile initial load
