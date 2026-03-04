@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense, lazy } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import Sl from "./screens/Sl";
@@ -6,9 +6,10 @@ import Home from "./screens/Home";
 import Ask from "./screens/Ask";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
+import AuthScreen from "./auth"; // ✅ Your sign-in screen
 import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser } from 'react-icons/fa';
 
-// Lazy load Stories to reduce mobile initial load
+// Lazy load Stories for faster mobile initial load
 const Stories = lazy(() => import("./screens/Stories"));
 
 // ---------- Error Boundary ----------
@@ -40,12 +41,13 @@ export default function App() {
   const [user, setUser] = useState(undefined);
   const [tab, setTab] = useState("home");
 
+  // 🔐 Firebase Auth
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u || null));
     return () => unsub();
   }, []);
 
-  // Loading
+  // 🌑 Loading
   if (user === undefined) {
     return (
       <div style={styles.loading}>
@@ -57,17 +59,18 @@ export default function App() {
     );
   }
 
-  // Not signed in
-  if (!user) return <Sign />;
+  // 🚪 Not signed in
+  if (!user) return <AuthScreen />;
 
+  // 🧭 Screen router
   const renderScreen = () => {
     switch (tab) {
       case "home": return <Home user={user} setTab={setTab} />;
       case "ask": return <Ask user={user} />;
       case "sl": return <Sl />;
-      case "stories": 
+      case "stories":
         return (
-          <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories...</div>}>
+          <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories…</div>}>
             <Stories />
           </Suspense>
         );
@@ -93,7 +96,7 @@ export default function App() {
   );
 }
 
-// ---------- Nav Button ----------
+// ---------- Navigation Button ----------
 function NavBtn({ icon, label, active, onClick }) {
   return (
     <button
@@ -109,14 +112,48 @@ function NavBtn({ icon, label, active, onClick }) {
   );
 }
 
+// ---------- Styles ----------
 const styles = {
-  app: { background: "#000", color: "white", minHeight: "100vh", fontFamily: "system-ui" },
-  screen: { paddingBottom: 80 },
-  nav: {
-    position: "fixed", bottom: 0, left: 0, right: 0, height: 70,
-    background: "#000", borderTop: "1px solid #222",
-    display: "flex", justifyContent: "space-around", alignItems: "center", zIndex: 999,
+  app: {
+    background: "#000",
+    color: "white",
+    minHeight: "100vh",
+    fontFamily: "system-ui",
   },
-  navBtn: { background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", fontSize: 12, cursor: "pointer" },
-  loading: { height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0b0b", color: "#fff", textAlign: "center" },
+  screen: {
+    paddingBottom: 80,
+    minHeight: "calc(100vh - 70px)", // avoids blank areas on mobile
+    overflowX: "hidden",
+  },
+  nav: {
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    background: "#000",
+    borderTop: "1px solid #222",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    zIndex: 999,
+  },
+  navBtn: {
+    background: "none",
+    border: "none",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  loading: {
+    height: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0b0b0b",
+    color: "#fff",
+    textAlign: "center",
+  },
 };
