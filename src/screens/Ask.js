@@ -1,26 +1,32 @@
 import { useState, useEffect } from "react";
-import Tesseract from "tesseract.js";
+import Tesseract from "tesseract.js"; // Make sure tesseract.js is installed
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Ask({ user }) {
   const [notes, setNotes] = useState("");
   const [treatment, setTreatment] = useState("");
-  const [streak, setStreak] = useState(0);
   const [saved, setSaved] = useState(false);
   const [topic, setTopic] = useState("");
-  const [explanation, setExplanation] = useState("");
-  const [snapFile, setSnapFile] = useState(null);
+  const [topicExplanation, setTopicExplanation] = useState(null);
+  const [toolMsg, setToolMsg] = useState("");
   const [snapResult, setSnapResult] = useState("");
+  const [processingImage, setProcessingImage] = useState(false);
+  const [userData, setUserData] = useState(null);
 
-  // Load streak
+  // Load user data from Firebase
   useEffect(() => {
-    const s = parseInt(localStorage.getItem("dfb_reflect_streak")) || 0;
-    setStreak(s);
-  }, []);
+    async function fetchUser() {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) setUserData(docSnap.data());
+    }
+    fetchUser();
+  }, [user]);
 
-  // Generate treatment based on notes
-  function generateTreatment(text) {
+  // ---------- Generate Treatment ----------
+  const generateTreatment = (text) => {
     const t = text.toLowerCase();
-
     if (t.includes("math") || t.includes("algebra") || t.includes("equation"))
       return `🎯 Focus: Mathematics
 ✔ Review formulas for 10 minutes
@@ -49,124 +55,125 @@ export default function Ask({ user }) {
 ✔ Review notes for 10 minutes
 ✔ Identify one weak area
 ✔ Plan tomorrow`;
-  }
+  };
 
-  // Save reflection
-  const saveNotes = () => {
+  const saveNotes = async () => {
     if (!notes.trim()) return;
 
     const today = new Date().toDateString();
     const last = localStorage.getItem("dfb_reflect_last");
-    let newStreak = streak;
-    if (last !== today) newStreak += 1;
+
+    let newVisits = (userData?.doctorVisits || 0);
+    if (last !== today) newVisits += 1;
 
     localStorage.setItem("dfb_reflect_last", today);
-    localStorage.setItem("dfb_reflect_streak", newStreak);
+    localStorage.setItem("dfb_reflect_streak", newVisits);
 
-    setStreak(newStreak);
     setTreatment(generateTreatment(notes));
     setSaved(true);
+
+    // Update Firebase doctor visits
+    if (userData) {
+      const docRef = doc(db, "users", user.uid);
+      await updateDoc(docRef, { doctorVisits: newVisits });
+      setUserData((prev) => ({ ...prev, doctorVisits: newVisits }));
+    }
   };
 
-  // Explain My Topic (non-AI, simple logic)
+  // ---------- Explain Topic ----------
   const explainTopic = () => {
     if (!topic.trim()) return;
 
     const t = topic.toLowerCase();
-    let explanationText = "";
+    // Simple non-AI logic
+    let explanation = `📘 Explanation for "${topic}":\n`;
 
     if (t.includes("newton")) {
-      explanationText = `📘 Simple Explanation:
-Newton's Laws explain how objects move.
-
-✅ Key Points:
-1. First Law: Inertia
-2. Second Law: F=ma
-3. Third Law: Action-Reaction
-
-💡 Example:
-Push a ball: it moves, stop pushing: it stops.
-
-❓ Possible Questions:
-Define inertia
-Explain F=ma with example
+      explanation += `
+1️⃣ Simple Explanation: Newton's laws describe motion and forces.
+2️⃣ Key Points:
+- First Law: Inertia
+- Second Law: F=ma
+- Third Law: Action-Reaction
+3️⃣ Example: Push a wall and the wall pushes back.
+4️⃣ Mini Quiz:
+- Define Newton's First Law
+- Give an example of inertia
 `;
-
     } else if (t.includes("photosynthesis")) {
-      explanationText = `📘 Simple Explanation:
-Plants make food using sunlight, CO2, water.
-
-✅ Key Points:
+      explanation += `
+1️⃣ Simple Explanation: Plants make food using sunlight.
+2️⃣ Key Points:
 - Chlorophyll captures light
-- Glucose is produced
-- Oxygen is released
-
-💡 Example:
-Sunlight + water + CO2 → Sugar + O2
-
-❓ Possible Questions:
-Write equation of photosynthesis
-Explain role of sunlight
+- CO2 + H2O → Glucose + O2
+3️⃣ Example: Sunlight turning leaves green
+4️⃣ Mini Quiz:
+- What is the main pigment in photosynthesis?
+- Write the photosynthesis equation
 `;
     } else {
-      explanationText = `📘 Simple Explanation:
-This topic is under review. Try breaking it into keywords.`;
+      explanation += `
+1️⃣ Simple Explanation: ${topic} is a concept you should explore.
+2️⃣ Key Points: Identify 3 main points.
+3️⃣ Example: Give a real-life example.
+4️⃣ Mini Quiz: Write 2 questions based on the topic.
+`;
     }
 
-    setExplanation(explanationText);
-    setTopic(""); // clear input for UX
+    setTopicExplanation(explanation);
+    setTopic(""); // clear input for better UX
   };
 
-  // Snap & Explain
-  const handleSnapUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setSnapFile(file);
-    setSnapResult("Processing image...");
-    Tesseract.recognize(file, "eng", { logger: (m) => console.log(m) })
-      .then(({ data: { text } }) => {
-        const cleaned = text.replace(/\s+/g, " ").trim();
-        let result = `📸 Snap & Explain Result:\n\nExtracted Text:\n${cleaned}\n\n✅ Quick Summary:\n- Identify key points from above text\n- Check examples\n- Make mini quiz\n`;
-        setSnapResult(result);
-      })
-      .catch(() => setSnapResult("Failed to process image."));
+  // ---------- Snap & Explain ----------
+  const handleSnap = async (e) => {
+    if (!e.target.files[0]) return;
+    setProcessingImage(true);
+    setSnapResult("");
+
+    const image = e.target.files[0];
+    try {
+      const { data } = await Tesseract.recognize(image, "eng", { logger: m => {} });
+      const text = data.text;
+      setSnapResult(`📸 OCR Result:\n${text}\n\nTry explaining this in Explain Topic tab!`);
+    } catch (err) {
+      setSnapResult("❌ Failed to process image.");
+    } finally {
+      setProcessingImage(false);
+    }
   };
 
-  // Quick relief tools
+  // ---------- Quick Relief Tools ----------
   const tools = [
-    { title: "🧠 Calm My Mind", text: "Close your eyes. Inhale for 4s… exhale slowly." },
+    { title: "🧠 Calm My Mind", text: "Close your eyes. Inhale for 4s… exhale slowly. Your brain resets." },
     { title: "⚡ Quick Motivation", text: "Future you is begging you not to quit today 💛" },
     { title: "📚 Study Tip", text: "Active recall beats rereading every time." },
+    { title: "🌟 Scholar Tip", text: "Finish one small task before bedtime to feel accomplished." },
   ];
-
-  const [toolMsg, setToolMsg] = useState("");
 
   return (
     <div style={styles.container}>
       <h1>Ask Dr. E 🩺</h1>
       <p style={{ opacity: 0.7 }}>Real doctors listen first.</p>
 
-      {/* ⭐ Reflection Streak */}
+      {/* Doctor Visit Counter */}
       <div style={styles.streakBox}>
-        🔥 Reflection Streak: {streak} day{streak !== 1 && "s"}
+        🏥 Educational Doctor Visits: {userData?.doctorVisits || 0}
       </div>
 
-      {/* 📝 Patient Notes */}
+      {/* Patient Notes */}
       <div style={styles.card}>
         <h3>📝 Patient Notes</h3>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Tell Dr. E about your day in school..."
+          placeholder="Tell Dr. E about your day..."
           style={styles.textarea}
         />
-        <button style={styles.mainBtn} onClick={saveNotes}>
-          Generate Today’s Treatment
-        </button>
+        <button style={styles.mainBtn} onClick={saveNotes}>Generate Today’s Treatment</button>
         {saved && <p style={{ marginTop: 8, opacity: 0.8 }}>Notes saved 💛</p>}
       </div>
 
-      {/* 🎯 Treatment */}
+      {/* Treatment */}
       {treatment && (
         <div style={styles.card}>
           <h3>🩺 Today’s Treatment</h3>
@@ -174,31 +181,30 @@ This topic is under review. Try breaking it into keywords.`;
         </div>
       )}
 
-      {/* 💡 Explain My Topic */}
+      {/* Explain Topic */}
       <div style={styles.card}>
-        <h3>📖 Explain My Topic</h3>
+        <h3>🧠 Explain a Topic</h3>
         <input
+          style={styles.textarea}
+          placeholder="Type topic here..."
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="Type a topic, e.g., Newton's Laws"
-          style={styles.textInput}
         />
-        <button style={styles.mainBtn} onClick={explainTopic}>
-          Explain Topic
-        </button>
-        {explanation && <pre style={styles.treatment}>{explanation}</pre>}
+        <button style={styles.mainBtn} onClick={explainTopic}>Explain Topic</button>
+        {topicExplanation && <pre style={styles.treatment}>{topicExplanation}</pre>}
       </div>
 
-      {/* 📸 Snap & Explain */}
+      {/* Snap & Explain */}
       <div style={styles.card}>
         <h3>📸 Snap & Explain</h3>
-        <input type="file" accept="image/*" onChange={handleSnapUpload} />
+        <input type="file" accept="image/*" onChange={handleSnap} />
+        {processingImage && <p>Processing image...</p>}
         {snapResult && <pre style={styles.treatment}>{snapResult}</pre>}
       </div>
 
-      {/* ⚡ Quick Relief */}
+      {/* Quick Relief Tools */}
       <div style={styles.card}>
-        <h3>⚡ Quick Relief</h3>
+        <h3>⚡ Quick Help</h3>
         {tools.map((t, i) => (
           <button key={i} style={styles.toolBtn} onClick={() => setToolMsg(t.text)}>
             {t.title}
@@ -206,17 +212,6 @@ This topic is under review. Try breaking it into keywords.`;
         ))}
         {toolMsg && <p style={styles.toolMsg}>{toolMsg}</p>}
       </div>
-
-      {/* 🔒 Premium Preview */}
-      <div style={styles.card}>
-        <h3>🧠 Dr. E Advanced Diagnosis</h3>
-        <p style={{ opacity: 0.7 }}>
-          Deep analysis of your weak areas, study style, and personalised roadmap.
-        </p>
-        <button style={styles.lockBtn}>🔒 Coming Soon</button>
-      </div>
-
-      <p style={styles.footer}>“Confusion means growth is happening.” 💛</p>
     </div>
   );
 }
@@ -225,13 +220,10 @@ This topic is under review. Try breaking it into keywords.`;
 const styles = {
   container: { padding: 20, paddingBottom: 100 },
   card: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
-  textarea: { width: "100%", padding: 12, borderRadius: 10, marginTop: 10, marginBottom: 10, minHeight: 80 },
-  textInput: { width: "100%", padding: 12, borderRadius: 10, marginTop: 10, marginBottom: 10 },
-  mainBtn: { width: "100%", padding: 12, background: "#FFD700", borderRadius: 12, fontWeight: "bold" },
+  textarea: { width: "100%", padding: 12, borderRadius: 10, marginTop: 10, marginBottom: 10, minHeight: 40 },
+  mainBtn: { width: "100%", padding: 12, background: "#FFD700", borderRadius: 12, fontWeight: "bold", marginTop: 8, cursor: "pointer" },
   treatment: { whiteSpace: "pre-wrap", lineHeight: 1.6 },
-  toolBtn: { width: "100%", padding: 10, marginTop: 8 },
+  toolBtn: { width: "100%", padding: 10, marginTop: 8, cursor: "pointer" },
   toolMsg: { marginTop: 12, opacity: 0.9 },
-  lockBtn: { width: "100%", padding: 12, background: "#333", marginTop: 10 },
   streakBox: { background: "#FFD700", color: "#000", padding: 10, borderRadius: 12, marginBottom: 14, fontWeight: "bold", textAlign: "center" },
-  footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
 };
