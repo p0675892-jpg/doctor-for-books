@@ -1,16 +1,17 @@
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
-import Sl from "./screens/Sl";
 import Home from "./screens/Home";
 import Ask from "./screens/Ask";
+import SnapExplain from "./screens/SnapExplain";
+import Sl from "./screens/Sl";
+import Stories from "./screens/Stories";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
-import AuthScreen from "./AuthScreen"; // ✅ Your sign-in screen
-import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser } from 'react-icons/fa';
+import { FaHome, FaQuestionCircle, FaCamera, FaHandPaper, FaBook, FaUser } from "react-icons/fa";
 
-// Lazy load Stories for faster mobile initial load
-const Stories = lazy(() => import("./screens/Stories"));
+// Lazy load Stories for faster mobile load
+const LazyStories = lazy(() => import("./screens/Stories"));
 
 // ---------- Error Boundary ----------
 class ErrorBoundary extends React.Component {
@@ -41,13 +42,12 @@ export default function App() {
   const [user, setUser] = useState(undefined);
   const [tab, setTab] = useState("home");
 
-  // 🔐 Firebase Auth
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u || null));
     return () => unsub();
   }, []);
 
-  // 🌑 Loading
+  // Loading
   if (user === undefined) {
     return (
       <div style={styles.loading}>
@@ -59,24 +59,31 @@ export default function App() {
     );
   }
 
-  // 🚪 Not signed in
+  // Not signed in
   if (!user) return <AuthScreen />;
 
-  // 🧭 Screen router
   const renderScreen = () => {
     switch (tab) {
-      case "home": return <Home user={user} setTab={setTab} />;
-      case "ask": return <Ask user={user} />;
-      case "sl": return <Sl />;
+      case "home":
+        return <Home user={user} setTab={setTab} />;
+      case "ask":
+        return <Ask user={user} />;
+      case "snap":
+        return <SnapExplain user={user} />;
+      case "sl":
+        return <Sl />;
       case "stories":
         return (
-          <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories…</div>}>
-            <Stories />
+          <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories...</div>}>
+            <LazyStories />
           </Suspense>
         );
-      case "profile": return <Profile user={user} setTab={setTab} />;
-      case "settings": return <Settings user={user} setTab={setTab} />;
-      default: return <Home user={user} setTab={setTab} />;
+      case "profile":
+        return <Profile user={user} setTab={setTab} />;
+      case "settings":
+        return <Settings user={user} setTab={setTab} />;
+      default:
+        return <Home user={user} setTab={setTab} />;
     }
   };
 
@@ -87,7 +94,8 @@ export default function App() {
         <nav style={styles.nav}>
           <NavBtn icon={<FaHome size={22} />} label="Home" active={tab === "home"} onClick={() => setTab("home")} />
           <NavBtn icon={<FaQuestionCircle size={22} />} label="Ask" active={tab === "ask"} onClick={() => setTab("ask")} />
-          <NavBtn icon={<FaHandPaper size={22} />} label="Sl" active={tab === "sl"} onClick={() => setTab("sl")} />
+          <NavBtn icon={<FaCamera size={22} />} label="Snap" active={tab === "snap"} onClick={() => setTab("snap")} />
+          <NavBtn icon={<FaHandPaper size={22} />} label="SL" active={tab === "sl"} onClick={() => setTab("sl")} />
           <NavBtn icon={<FaBook size={22} />} label="Stories" active={tab === "stories"} onClick={() => setTab("stories")} />
           <NavBtn icon={<FaUser size={22} />} label="Profile" active={tab === "profile"} onClick={() => setTab("profile")} />
         </nav>
@@ -96,7 +104,7 @@ export default function App() {
   );
 }
 
-// ---------- Navigation Button ----------
+// ---------- Nav Button ----------
 function NavBtn({ icon, label, active, onClick }) {
   return (
     <button
@@ -114,17 +122,8 @@ function NavBtn({ icon, label, active, onClick }) {
 
 // ---------- Styles ----------
 const styles = {
-  app: {
-    background: "#000",
-    color: "white",
-    minHeight: "100vh",
-    fontFamily: "system-ui",
-  },
-  screen: {
-    paddingBottom: 80,
-    minHeight: "calc(100vh - 70px)", // avoids blank areas on mobile
-    overflowX: "hidden",
-  },
+  app: { background: "#000", color: "white", minHeight: "100vh", fontFamily: "system-ui" },
+  screen: { paddingBottom: 80 },
   nav: {
     position: "fixed",
     bottom: 0,
@@ -138,22 +137,6 @@ const styles = {
     alignItems: "center",
     zIndex: 999,
   },
-  navBtn: {
-    background: "none",
-    border: "none",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  loading: {
-    height: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#0b0b0b",
-    color: "#fff",
-    textAlign: "center",
-  },
+  navBtn: { background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", fontSize: 12, cursor: "pointer" },
+  loading: { height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0b0b", color: "#fff", textAlign: "center" },
 };
