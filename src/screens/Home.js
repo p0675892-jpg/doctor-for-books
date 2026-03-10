@@ -1,243 +1,162 @@
-import { useEffect, useState } from "react";
-import { FaUserMd, FaFire, FaStar, FaBullseye, FaBrain } from "react-icons/fa";
-import { getWeakArea } from "../utils/weakTracker";
+import { useState, useEffect } from "react";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Home({ user, setTab }) {
-  const [name, setName] = useState("Student");
-  const [xp, setXp] = useState(0);
-  const [streak, setStreak] = useState(1);
-  const [checked, setChecked] = useState(false);
-  const [weakArea, setWeakArea] = useState("General Studies");
+  const [userData, setUserData] = useState(null);
+  const [checkupDone, setCheckupDone] = useState(false);
+  const [dailyBrainDose, setDailyBrainDose] = useState({});
+  const [motivation, setMotivation] = useState("");
 
-  // 🔄 LOAD DATA
+  // Load user data from Firebase
   useEffect(() => {
-    const load = () => {
-      setName(localStorage.getItem("dfb_name") || "Student");
-      setXp(parseInt(localStorage.getItem("dfb_xp")) || 0);
-      setStreak(parseInt(localStorage.getItem("dfb_streak")) || 1);
-      setWeakArea(getWeakArea());
+    async function fetchUser() {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+        const lastCheck = docSnap.data().lastCheckupDate;
+        const today = new Date().toDateString();
+        setCheckupDone(lastCheck === today);
+      }
+    }
+    fetchUser();
+  }, [user]);
 
-      const today = new Date().toDateString();
-      setChecked(localStorage.getItem("dfb_last_check") === today);
+  // Generate Daily Brain Dose (can expand later)
+  useEffect(() => {
+    const dose = {
+      topic: "Inertia",
+      idea: "Inertia means an object resists change in motion.",
+      example: "When a bus stops suddenly, your body moves forward.",
+      miniChallenge: "Why do passengers lean backward when a bus starts moving?",
+      answer: "Due to inertia, your body wants to keep moving at the same speed."
     };
-
-    load();
-    window.addEventListener("storage", load);
-    return () => window.removeEventListener("storage", load);
+    setDailyBrainDose(dose);
   }, []);
 
-  const level = Math.floor(xp / 100) + 1;
-  const progress = xp % 100;
-
-  // 📅 DAILY CHECK-IN
-  const checkIn = () => {
-    if (checked) return;
-
+  // Handle Doctor Daily Checkup
+  const handleCheckup = async (wentWell) => {
+    if (!userData) return;
+    const docRef = doc(db, "users", user.uid);
     const today = new Date().toDateString();
-    const newXP = xp + 5;
-    const newStreak = streak + 1;
 
-    localStorage.setItem("dfb_last_check", today);
-    localStorage.setItem("dfb_xp", newXP);
-    localStorage.setItem("dfb_streak", newStreak);
+    // Update checkup date and increment visits
+    await updateDoc(docRef, {
+      lastCheckupDate: today,
+      doctorVisits: (userData.doctorVisits || 0) + 1
+    });
 
-    setXp(newXP);
-    setStreak(newStreak);
-    setChecked(true);
+    setCheckupDone(true);
+    setUserData((prev) => ({
+      ...prev,
+      doctorVisits: (prev.doctorVisits || 0) + 1,
+      lastCheckupDate: today
+    }));
+
+    // Set motivation based on answer
+    if (wentWell) {
+      setMotivation("🎉 Amazing! Keep that energy going! Every step counts.");
+    } else {
+      setMotivation("💛 It's okay! Tomorrow is a new day. You can still shine.");
+    }
   };
-
-  // 🧑‍⚕️ DR. E PERSONALITY
-  const messages = [
-    "Your brain is warming up nicely 🧠",
-    "Consistency beats talent 💪",
-    "Tiny progress compounds 🌱",
-    "Future you is quietly cheering 📣",
-    "Motion beats perfection ✨",
-  ];
-
-  const insights = [
-    "Teaching someone boosts retention 📚",
-    "Sleep strengthens memory 😴",
-    "Practice beats rereading 💡",
-    "Confusion is the start of mastery 🧠",
-  ];
-
-  const diagnoses = [
-    "Brain overheating detected… prescribing water 💧",
-    "Motivation level low — applying confidence patch 💛",
-    "Overthinking virus found — treatment ongoing 🧠",
-    "Progress detected. Continue immediately 🚀",
-    "Minor confusion spotted — this is how learning starts ✨",
-  ];
-
-  const message = messages[Math.floor(Math.random() * messages.length)];
-  const insight = insights[Math.floor(Math.random() * insights.length)];
-  const diagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
 
   return (
     <div style={styles.container}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <div style={styles.avatar}>
-          <FaUserMd />
-        </div>
+      {/* Welcome */}
+      <h1>Welcome back, {userData?.name || "Student"} 👋</h1>
+      <p style={{ opacity: 0.7 }}>Every small step today builds your future.</p>
 
-        <div>
-          <h1>Hello {name} 👋</h1>
-          <p style={styles.sub}>Dr. E says: {message}</p>
+      {/* Doctor Daily Checkup */}
+      {!checkupDone && (
+        <div style={styles.card}>
+          <h3>Doctor's check-up</h3>
+          <p>Hope you did well in school today?</p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button style={styles.checkBtn} onClick={() => handleCheckup(true)}>Yes ✅</button>
+            <button style={styles.checkBtn} onClick={() => handleCheckup(false)}>Not really ❌</button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* DR. E PANEL */}
-      <div style={styles.doctorPanel}>
-        <FaUserMd style={{ fontSize: 28 }} />
-        <div>
-          <strong>Dr. E Diagnosis:</strong>
-          <p style={{ margin: 0, opacity: 0.8 }}>{diagnosis}</p>
+      {motivation && (
+        <div style={styles.card}>
+          <h3>Dr E Motivation</h3>
+          <p>{motivation}</p>
         </div>
-      </div>
+      )}
 
-      {/* DAILY CHECK-IN */}
+      {/* Daily Brain Dose */}
       <div style={styles.card}>
-        <h3><FaBullseye /> Daily Check-In</h3>
-
-        {checked ? (
-          <p>✅ Ritual complete today</p>
-        ) : (
-          <button style={styles.checkBtn} onClick={checkIn}>
-            Begin Today (+5 XP)
-          </button>
-        )}
+        <h3>🧠 Daily Brain Dose</h3>
+        <p><strong>Topic:</strong> {dailyBrainDose.topic}</p>
+        <p><strong>Quick Idea:</strong> {dailyBrainDose.idea}</p>
+        <p><strong>Example:</strong> {dailyBrainDose.example}</p>
+        <p><strong>Mini Challenge:</strong> {dailyBrainDose.miniChallenge}</p>
+        <button
+          style={styles.mainBtn}
+          onClick={() => alert(dailyBrainDose.answer)}
+        >
+          Reveal Answer
+        </button>
       </div>
 
-      {/* PROGRESS */}
+      {/* Quick Revision */}
       <div style={styles.card}>
-        <h3><FaStar /> Level {level}</h3>
-
-        <div style={styles.bar}>
-          <div style={{ ...styles.fill, width: progress + "%" }} />
-        </div>
-
-        <small>{progress}% to next level</small>
-
-        <p style={{ marginTop: 6 }}>
-          <FaFire /> {streak}-day streak — most people quit before this.
-        </p>
+        <h3>📝 Quick Revision</h3>
+        <p>Small Doctor Test</p>
+        <button style={styles.mainBtn} onClick={() => setTab("ask")}>
+          Take Test
+        </button>
       </div>
 
-      {/* TODAY'S MISSION */}
+      {/* Continue Learning */}
       <div style={styles.card}>
-        <h3><FaBullseye /> Today’s Mission</h3>
-        <ul style={styles.missionList}>
-          <li>Ask Dr. E for help</li>
-          <li>Finish one lesson</li>
-          <li>Read one story</li>
-        </ul>
+        <h3>📚 Continue Learning</h3>
+        <p>Last topic: {userData?.lastTopic || "No topic yet"}</p>
+        <button style={styles.mainBtn} onClick={() => setTab("ask")}>
+          Continue
+        </button>
       </div>
 
-      {/* WEAK AREA */}
+      {/* Doctor Visit Counter */}
       <div style={styles.card}>
-        ⚠️ Focus Area: {weakArea}
+        <h3>🏥 Educational Doctor Visits</h3>
+        <p>{userData?.doctorVisits || 0} visits</p>
       </div>
-
-      {/* INSIGHT */}
-      <div style={styles.card}>
-        <FaBrain /> Daily Insight
-        <p style={{ marginTop: 6 }}>{insight}</p>
-      </div>
-
-      {/* QUICK ACTIONS */}
-      <div style={styles.actions}>
-        <div style={styles.actionCard} onClick={() => setTab("ask")}>
-          🔍 Ask Dr. E
-        </div>
-
-        <div style={styles.actionCard} onClick={() => setTab("sign")}>
-          🤟 Continue Lessons
-        </div>
-
-        <div style={styles.actionCard} onClick={() => setTab("stories")}>
-          📖 Read a Story
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <p style={styles.footer}>
-        “Small effort today = powerful tomorrow 💛”
-      </p>
     </div>
   );
 }
 
+/* ---------- STYLES ---------- */
 const styles = {
-  container: { padding: 20, paddingBottom: 120, overflowY: "auto" },
-
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    marginBottom: 16,
+  container: {
+    padding: 20,
+    paddingBottom: 100,
   },
-
-  avatar: { fontSize: 52 },
-  sub: { opacity: 0.7 },
-
   card: {
     background: "#1a1a1a",
     padding: 16,
     borderRadius: 16,
     marginBottom: 14,
   },
-
   checkBtn: {
-    marginTop: 8,
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    fontWeight: "bold",
+    background: "#FFD700",
+    border: "none",
+    cursor: "pointer",
+  },
+  mainBtn: {
+    width: "100%",
     padding: 12,
     background: "#FFD700",
     borderRadius: 12,
     fontWeight: "bold",
-    border: "none",
-    cursor: "pointer",
-  },
-
-  bar: {
-    background: "#333",
-    height: 12,
-    borderRadius: 10,
-    overflow: "hidden",
     marginTop: 8,
-  },
-
-  fill: { background: "#FFD700", height: "100%" },
-
-  missionList: { marginTop: 8, paddingLeft: 20, opacity: 0.9 },
-
-  actions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    marginTop: 10,
-  },
-
-  actionCard: {
-    background: "#FFD700",
-    color: "#000",
-    padding: 16,
-    borderRadius: 16,
-    fontWeight: "bold",
-    textAlign: "center",
     cursor: "pointer",
-  },
-
-  footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
-
-  doctorPanel: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    background: "#121212",
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 14,
-    border: "1px solid #222",
   },
 };

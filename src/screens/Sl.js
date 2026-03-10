@@ -1,181 +1,121 @@
-import { useState, useEffect } from "react";
-import { recordWeakArea } from "../utils/weakTracker";
+import { useState } from "react";
 
-export default function Sl() {
-  const [mode, setMode] = useState("menu");
-  const [lesson, setLesson] = useState(null);
-  const [message, setMessage] = useState("");
-  const [xp, setXp] = useState(0);
-  const [answered, setAnswered] = useState(false);
+// Example sign lessons
+const aslLessons = [
+  {
+    id: 1,
+    hook: "Learn to say Hello",
+    lesson: "Raise your hand and wave.",
+    tip: "Smile while signing.",
+    practice: "Try greeting a friend with Hello.",
+    image: "https://i.ibb.co/7Q8F0vZ/hello.png", // replace with your images
+  },
+  {
+    id: 2,
+    hook: "Learn Thank You",
+    lesson: "Place fingers near lips and move forward.",
+    tip: "Say it with gratitude.",
+    practice: "Thank someone today.",
+    image: "https://i.ibb.co/d7Y2F4V/thankyou.png",
+  },
+  {
+    id: 3,
+    hook: "Learn Sorry",
+    lesson: "Make a fist and rub on chest.",
+    tip: "Show sincerity.",
+    practice: "Apologize with this sign when needed.",
+    image: "https://i.ibb.co/pdsmJ6m/sorry.png",
+  },
+  {
+    id: 4,
+    hook: "Learn I Love You",
+    lesson: "Raise hand, extend thumb, index, pinky.",
+    tip: "Say it with heart.",
+    practice: "Express love to a family member.",
+    image: "https://i.ibb.co/Nj2Nz7q/ily.png",
+  },
+  // add more lessons up to billions in future...
+];
 
-  // Load XP safely
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
-      setXp(savedXP);
-    }
-  }, []);
+export default function SL() {
+  const [currentLesson, setCurrentLesson] = useState(0);
+  const [section, setSection] = useState("ASL"); // "ASL", "Communication", "Morals", "Ethique"
 
-  const addXP = () => {
-    setXp(prevXp => {
-      const newXP = prevXp + 8;
-      if (typeof window !== "undefined") localStorage.setItem("dfb_xp", newXP);
-      return newXP;
-    });
+  const lesson = aslLessons[currentLesson];
+
+  const nextLesson = () => {
+    setCurrentLesson((prev) => (prev + 1) % aslLessons.length);
   };
 
-  const level = Math.floor(xp / 100) + 1;
-
-  // ===== Lessons =====
-  const signLessons = [
-    {
-      title: "Hello & Thank You",
-      images: [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/ASL Hello.jpg/800px-ASL Hello.jpg",
-        "https://upload.wikimedia.org/wikipedia/commons/e/e0/ASL_Thank_You.jpg",
-      ],
-      content: "Sign language relies on clear movement and facial expression. 'Hello' and 'Thank you' are foundational signs.",
-      question: "Which sign expresses gratitude?",
-      options: ["Hello", "Thank you", "Welcome"],
-      correct: "Thank you",
-      type: "Sign Language",
-    },
-    {
-      title: "Common Phrases",
-      images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/ASL_I_Love_You.jpg/800px-ASL_I_Love_You.jpg"],
-      content: "Learn essential phrases to connect with the Deaf community.",
-      question: "What's the ASL sign for 'I love you'?",
-      options: ["Thumb up", "Open hand", "Thumb, pinky, and index"],
-      correct: "Thumb, pinky, and index",
-      type: "Sign Language",
-    },
-  ];
-
-  const langLessons = [
-    {
-      title: "Word Wizardry",
-      content: "Prefixes and suffixes are like magic spells! 🧙‍♂️ Change word meanings with '-un', 're-', and 'pre-'.",
-      question: "What does 'preview' mean?",
-      options: ["View before", "View again", "View wrongly"],
-      correct: "View before",
-      type: "Linguistics",
-    },
-    {
-      title: "Language Games",
-      content: "Did you know words can be like puzzles? 🧩 Unscramble: 'listen' = 'silent'!",
-      question: "What's the anagram of 'acts'?",
-      options: ["Cats", "Cast", "Scat"],
-      correct: "Cats",
-      type: "Linguistics",
-    },
-  ];
-
-  const emotionalStories = [
-    {
-      title: "The Quiet Student",
-      text: "She rarely spoke in class. Not because she had nothing to say, but because words tangled before leaving her mouth...",
-    },
-    {
-      title: "Misunderstood",
-      text: "Two students had equal knowledge. One spoke confidently, the other hesitated. Learning to express ideas reshapes opportunities.",
-    },
-  ];
-
-  // ===== Lesson Handlers =====
-  const startLesson = (l) => {
-    setLesson(l);
-    setMode("class");
-    setMessage("");
-    setAnswered(false);
+  const prevLesson = () => {
+    setCurrentLesson((prev) => (prev - 1 + aslLessons.length) % aslLessons.length);
   };
 
-  const checkAnswer = (choice) => {
-    if (answered) return;
-    setAnswered(true);
-    if (choice === lesson.correct) {
-      addXP();
-      recordWeakArea(lesson.type, -1);
-      setMessage("Correct. Skill confirmed 💛 +8 XP");
-    } else {
-      recordWeakArea(lesson.type, 2);
-      setMessage("Hmm… accuracy matters. Try understanding, not guessing.");
-    }
-  };
-
-  // ===== Render =====
   return (
     <div style={styles.container}>
-      <h1>Communication Hub 🌍</h1>
-      <div style={styles.xpBox}> ⭐ Level {level} — {xp} XP </div>
+      <h1>🤟 Sign Language (SL)</h1>
+      <p style={{ opacity: 0.7 }}>Dr. E helps you learn, practice, and communicate with confidence.</p>
 
-      {mode === "menu" && (
-        <>
-          <p>Find your voice, connect with others ✨</p>
-          <div style={styles.card} onClick={() => setMode("sign")}>🤟 ASL: Sign Language</div>
-          <div style={styles.card} onClick={() => setMode("language")}>🗣️ Language Lab</div>
-          <div style={styles.card} onClick={() => setMode("stories")}>💛 Stories & Insights</div>
-          <div style={styles.card} onClick={() => setMode("insight")}>🧠 Communication Tips</div>
-        </>
-      )}
+      {/* Bottom Section Tabs */}
+      <div style={styles.tabRow}>
+        {["ASL", "Communication", "Morals", "Éthique"].map((sec) => (
+          <button
+            key={sec}
+            onClick={() => setSection(sec)}
+            style={{
+              ...styles.tabBtn,
+              background: section === sec ? "#FFD700" : "#333",
+              color: section === sec ? "#000" : "#fff",
+            }}
+          >
+            {sec}
+          </button>
+        ))}
+      </div>
 
-      {mode === "sign" && (
-        <>
-          <h2>ASL Sign Language</h2>
-          {signLessons.map((l, i) => (
-            <div key={i} style={styles.card} onClick={() => startLesson(l)}>{l.title}</div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
+      {/* Section Content */}
+      {section === "ASL" && (
+        <div style={styles.lessonCard}>
+          <h3>{lesson.hook}</h3>
+          <img src={lesson.image} alt={lesson.hook} style={styles.image} />
+          <p><strong>Lesson:</strong> {lesson.lesson}</p>
+          <p><strong>Tip:</strong> {lesson.tip}</p>
+          <p><strong>Practice:</strong> {lesson.practice}</p>
 
-      {mode === "language" && (
-        <>
-          <h2>Language Lab</h2>
-          {langLessons.map((l, i) => (
-            <div key={i} style={styles.card} onClick={() => startLesson(l)}>{l.title}</div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
-
-      {mode === "class" && lesson && (
-        <div style={styles.card}>
-          <h2>{lesson.title}</h2>
-          {lesson.images && lesson.images.map((img, i) => (
-            <img key={i} src={img} alt="" style={styles.image} loading="lazy" />
-          ))}
-          <p>{lesson.content}</p>
-          <h3>{lesson.question}</h3>
-          {lesson.options.map((o, i) => (
-            <button key={i} style={styles.option} onClick={() => checkAnswer(o)}>{o}</button>
-          ))}
-          {message && <p style={{ marginTop: 12 }}>{message}</p>}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
+          <div style={styles.navRow}>
+            <button style={styles.navBtn} onClick={prevLesson}>⬅ Previous</button>
+            <button style={styles.navBtn} onClick={nextLesson}>Next ➡</button>
+          </div>
         </div>
       )}
 
-      {mode === "stories" && (
-        <>
-          <h2>Stories & Insights</h2>
-          {emotionalStories.map((s, i) => (
-            <div key={i} style={styles.card}>
-              <h3>{s.title}</h3>
-              <p style={{ lineHeight: 1.7 }}>{s.text}</p>
-            </div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
+      {section === "Communication" && (
+        <div style={styles.lessonCard}>
+          <h3>Communication Tips</h3>
+          <p>🗣 Speak slowly and clearly.</p>
+          <p>🤝 Use gestures and facial expressions.</p>
+          <p>💛 Be patient and encouraging.</p>
+          <p>Dr. E reminds you: Every student can communicate, you just need the right tools!</p>
+        </div>
       )}
 
-      {mode === "insight" && (
-        <>
-          <div style={styles.card}>
-            <p>Clear communication increases perceived intelligence.</p>
-            <p>People trust confident speakers more.</p>
-            <p>Understanding language improves thinking itself.</p>
-          </div>
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
+      {section === "Morals" && (
+        <div style={styles.lessonCard}>
+          <h3>Morals & Ethics</h3>
+          <p>🌟 Respect everyone’s learning journey.</p>
+          <p>🌟 Help peers when you can.</p>
+          <p>🌟 Stay honest in your studies.</p>
+          <p>Motivation: “Good character builds unstoppable students.” 💛</p>
+        </div>
+      )}
+
+      {section === "Éthique" && (
+        <div style={styles.lessonCard}>
+          <h3>Éthique</h3>
+          <p>🌍 Respect cultural differences in communication.</p>
+          <p>🤝 Collaborate with integrity.</p>
+          <p>💡 Dr. E says: Ethics strengthen your mind and your relationships.</p>
+        </div>
       )}
     </div>
   );
@@ -183,8 +123,10 @@ export default function Sl() {
 
 const styles = {
   container: { padding: 20, paddingBottom: 100 },
-  xpBox: { background: "#FFD700", color: "#000", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: "bold" },
-  card: { background: "#1a1a1a", padding: 16, borderRadius: 14, marginBottom: 12, cursor: "pointer" },
-  option: { display: "block", marginTop: 8, padding: 12, width: "100%" },
+  tabRow: { display: "flex", justifyContent: "space-around", marginBottom: 16 },
+  tabBtn: { padding: 10, borderRadius: 20, border: "none", cursor: "pointer", minWidth: 80 },
+  lessonCard: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
+  navRow: { display: "flex", justifyContent: "space-between", marginTop: 16 },
+  navBtn: { padding: 10, borderRadius: 12, background: "#FFD700", border: "none", cursor: "pointer", fontWeight: "bold" },
   image: { width: "100%", borderRadius: 12, marginBottom: 10 },
 };

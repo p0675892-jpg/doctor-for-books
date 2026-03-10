@@ -1,305 +1,141 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { auth, db } from "./firebase"; // your firebase setup
+import { doc, updateDoc } from "firebase/firestore";
 
-export default function Profile({ setTab, user }) {
-  const [name, setName] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [xp, setXp] = useState(0);
+// For web payments (Stripe / Paystack)
+import { loadStripe } from "@stripe/stripe-js";
 
-  const progress = 65;
-  const strongAreas = ["English", "Reading", "Biology"];
-  const weakAreas = ["Mathematics", "Physics"];
+export default function Profile({ user }) {
+  const [streak, setStreak] = useState(0);
+  const [badges, setBadges] = useState([]);
+  const [level, setLevel] = useState("Young Scholar");
+  const [pro, setPro] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // LOAD DATA
   useEffect(() => {
-    const savedName = localStorage.getItem("dfb_name");
-    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
+    // Load user data from localStorage or Firebase
+    const s = parseInt(localStorage.getItem("dfb_streak")) || 0;
+    const b = JSON.parse(localStorage.getItem("dfb_badges")) || [];
+    const l = localStorage.getItem("dfb_level") || "Young Scholar";
+    const p = localStorage.getItem("dfb_pro") === "true";
 
-    setXp(savedXP);
+    setStreak(s);
+    setBadges(b);
+    setLevel(l);
+    setPro(p);
+  }, []);
 
-    if (savedName) setName(savedName);
-    else setName(user?.email?.split("@")[0] || "Student");
-  }, [user]);
-
-  const saveName = () => {
-    localStorage.setItem("dfb_name", name);
-    setEditing(false);
+  // ---------------- Web / PWA Payment ----------------
+  const handleWebPayment = async () => {
+    // Example: Stripe Checkout session
+    const stripe = await loadStripe("pk_test_YOUR_STRIPE_PUBLIC_KEY"); // replace with real key
+    // Fetch session ID from backend (not shown here)
+    const response = await fetch("/create-checkout-session", {
+      method: "POST",
+      body: JSON.stringify({ uid: user.uid }),
+    });
+    const { sessionId } = await response.json();
+    await stripe.redirectToCheckout({ sessionId });
   };
 
-  const level = Math.floor(xp / 100) + 1;
+  // ---------------- Mobile / In-App Purchase ----------------
+  const handleMobilePayment = async () => {
+    // Placeholder for Capacitor IAP / Google Play Billing
+    // Once purchase is verified, unlock Pro:
+    await unlockPro();
+    alert("🎉 Purchase verified! Pro features unlocked!");
+  };
+
+  const unlockPro = async () => {
+    setPro(true);
+    localStorage.setItem("dfb_pro", "true");
+    // Update Firebase user record
+    try {
+      await updateDoc(doc(db, "users", user.uid), { pro: true });
+    } catch (err) {
+      console.error("Firebase update failed:", err);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      // Mobile
+      handleMobilePayment();
+    } else {
+      // Web / PWA
+      handleWebPayment();
+    }
+  };
+
+  const toggleSettings = () => setSettingsOpen(!settingsOpen);
 
   return (
-    <div style={styles.page}>
+    <div style={styles.container}>
+      <h1>👤 {user.displayName || "Student"}'s Profile</h1>
+      <p style={{ opacity: 0.7 }}>
+        Level: {level} — {streak} day{streak !== 1 ? "s" : ""} of Dr. E check-ups!
+      </p>
 
-      {/* HEADER */}
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>Profile</h2>
-          <p style={styles.subtitle}>Your learning identity</p>
-        </div>
-
-        <button
-          style={styles.settingsBtn}
-          onClick={() => setTab("settings")}
-        >
-          ⚙
-        </button>
-      </div>
-
-      {/* DR. E IDENTITY CARD */}
-      <div style={styles.identityCard}>
-        <div style={styles.avatar}>DR·E</div>
-
-        <div>
-          <div style={styles.identityTitle}>Study Companion</div>
-          <div style={styles.identitySub}>
-            Calm. Precise. Slightly judging.
+      {/* Badges */}
+      <div style={styles.section}>
+        <h3>🏅 Badges Earned</h3>
+        {badges.length > 0 ? (
+          <div style={styles.badgeRow}>
+            {badges.map((b, i) => (
+              <div key={i} style={styles.badge}>{b}</div>
+            ))}
           </div>
-        </div>
-      </div>
-
-      {/* NAME */}
-      <div style={styles.nameBox}>
-        {editing ? (
-          <>
-            <input
-              style={styles.input}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-
-            <button style={styles.saveBtn} onClick={saveName}>
-              Save
-            </button>
-          </>
         ) : (
-          <>
-            <h3 style={styles.name}>{name}</h3>
-
-            <button
-              style={styles.editBtn}
-              onClick={() => setEditing(true)}
-            >
-              Edit name
-            </button>
-          </>
+          <p style={{ opacity: 0.7 }}>No badges yet. Keep learning!</p>
         )}
       </div>
 
-      {/* LEVEL + XP */}
-      <div style={styles.levelCard}>
-        <div style={styles.levelText}>
-          Level {level}
-        </div>
-
-        <div style={styles.xpText}>
-          {xp} XP accumulated
-        </div>
-      </div>
-
-      {/* PROGRESS */}
+      {/* Pro Upgrade */}
       <div style={styles.section}>
-        <h3 className="sectionTitle">Overall Progress</h3>
-
-        <div style={styles.progressBar}>
-          <div
-            style={{
-              ...styles.progressFill,
-              width: progress + "%",
-            }}
-          />
-        </div>
-
-        <p style={styles.progressText}>
-          {progress}% mastery
-        </p>
+        <h3>✨ Premium / Pro Features</h3>
+        {pro ? (
+          <p style={{ opacity: 0.8 }}>You’re enjoying Pro features. Keep learning!</p>
+        ) : (
+          <button style={styles.proBtn} onClick={handleUpgrade}>
+            Upgrade to Pro 💛
+          </button>
+        )}
       </div>
 
-      {/* STRONG AREAS */}
+      {/* Settings */}
       <div style={styles.section}>
-        <h3>Strong Areas</h3>
+        <button style={styles.settingsBtn} onClick={toggleSettings}>
+          {settingsOpen ? "Close Settings ⚙️" : "Open Settings ⚙️"}
+        </button>
 
-        <div style={styles.grid}>
-          {strongAreas.map((item) => (
-            <div key={item} style={styles.goodCard}>
-              {item}
-            </div>
-          ))}
-        </div>
+        {settingsOpen && (
+          <div style={styles.settingsCard}>
+            <h4>Account Settings</h4>
+            <p>Email: {user.email}</p>
+            <p>Notifications: On</p>
+            <p>Dark Mode: Enabled</p>
+            <button style={styles.settingsOption}>Change Password</button>
+            <button style={styles.settingsOption}>Logout</button>
+          </div>
+        )}
       </div>
 
-      {/* FOCUS AREAS */}
-      <div style={styles.section}>
-        <h3>Focus Areas</h3>
-
-        <div style={styles.grid}>
-          {weakAreas.map((item) => (
-            <div key={item} style={styles.badCard}>
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ height: 40 }} />
+      {/* Motivational Footer */}
+      <p style={styles.footer}>
+        “Every step you take today builds your unstoppable future.” 💛
+      </p>
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
-
 const styles = {
-  page: {
-    padding: 20,
-    background: "#0b0b0f",
-    color: "white",
-    minHeight: "100vh",
-    fontFamily: "system-ui",
-    overflowY: "auto",
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  title: {
-    margin: 0,
-  },
-
-  subtitle: {
-    margin: 0,
-    opacity: 0.6,
-    fontSize: 13,
-  },
-
-  settingsBtn: {
-    background: "#1a1a1f",
-    border: "none",
-    color: "white",
-    padding: "8px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  identityCard: {
-    display: "flex",
-    gap: 14,
-    alignItems: "center",
-    background: "#151518",
-    padding: 16,
-    borderRadius: 16,
-    marginTop: 20,
-  },
-
-  avatar: {
-    background: "#FFD700",
-    color: "#000",
-    fontWeight: "bold",
-    padding: 12,
-    borderRadius: 12,
-  },
-
-  identityTitle: {
-    fontWeight: "bold",
-  },
-
-  identitySub: {
-    opacity: 0.6,
-    fontSize: 13,
-  },
-
-  nameBox: {
-    textAlign: "center",
-    marginTop: 20,
-  },
-
-  name: {
-    marginBottom: 6,
-  },
-
-  editBtn: {
-    background: "#FFD700",
-    border: "none",
-    padding: "6px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  saveBtn: {
-    background: "#4caf50",
-    border: "none",
-    padding: "6px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  input: {
-    padding: 8,
-    borderRadius: 8,
-    border: "none",
-    marginRight: 8,
-  },
-
-  levelCard: {
-    background: "#FFD700",
-    color: "#000",
-    padding: 14,
-    borderRadius: 14,
-    marginTop: 20,
-    textAlign: "center",
-  },
-
-  levelText: {
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-
-  xpText: {
-    fontSize: 13,
-  },
-
-  section: {
-    marginTop: 28,
-  },
-
-  progressBar: {
-    width: "100%",
-    height: 14,
-    background: "#1a1a1f",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 8,
-  },
-
-  progressFill: {
-    height: "100%",
-    background: "#FFD700",
-  },
-
-  progressText: {
-    opacity: 0.7,
-    marginTop: 6,
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-    marginTop: 10,
-  },
-
-  goodCard: {
-    background: "#162d16",
-    padding: 12,
-    borderRadius: 12,
-    textAlign: "center",
-  },
-
-  badCard: {
-    background: "#2d1616",
-    padding: 12,
-    borderRadius: 12,
-    textAlign: "center",
-  },
+  container: { padding: 20, paddingBottom: 100 },
+  section: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
+  badgeRow: { display: "flex", flexWrap: "wrap", gap: 10 },
+  badge: { padding: 8, background: "#FFD700", borderRadius: 12, fontWeight: "bold", color: "#000" },
+  proBtn: { width: "100%", padding: 12, background: "#FFD700", color: "#000", border: "none", borderRadius: 12, fontWeight: "bold", cursor: "pointer" },
+  settingsBtn: { width: "100%", padding: 10, borderRadius: 12, background: "#333", color: "#fff", border: "none", cursor: "pointer" },
+  settingsCard: { marginTop: 10, padding: 12, background: "#222", borderRadius: 12 },
+  settingsOption: { width: "100%", padding: 10, marginTop: 8, borderRadius: 12, background: "#FFD700", color: "#000", border: "none", cursor: "pointer" },
+  footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
 };
