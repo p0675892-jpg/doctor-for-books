@@ -1,147 +1,132 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-// Example SL phrases database
-const SL_DB = [
+// Example sign lessons
+const aslLessons = [
   {
     id: 1,
-    level: "JSS",
-    sections: [
-      "📌 Hook: Learn to greet your friend in sign language!",
-      "🤟 Lesson: Sign 'Hello' by raising your hand with palm facing out and wave.",
-      "💡 Tip: Smile while signing, it makes your greeting friendlier!",
-      "❓ Practice: Try signing 'Hello' to a family member now."
-    ]
+    hook: "Learn to say Hello",
+    lesson: "Raise your hand and wave.",
+    tip: "Smile while signing.",
+    practice: "Try greeting a friend with Hello.",
+    image: "https://i.ibb.co/7Q8F0vZ/hello.png", // replace with your images
   },
   {
     id: 2,
-    level: "JSS",
-    sections: [
-      "📌 Hook: Express 'Thank you' in sign language",
-      "🤟 Lesson: Place your fingers on your chin and move them forward.",
-      "💡 Tip: Repeat daily for muscle memory.",
-      "❓ Practice: Thank someone today using this sign!"
-    ]
+    hook: "Learn Thank You",
+    lesson: "Place fingers near lips and move forward.",
+    tip: "Say it with gratitude.",
+    practice: "Thank someone today.",
+    image: "https://i.ibb.co/d7Y2F4V/thankyou.png",
   },
   {
     id: 3,
-    level: "Uni",
-    sections: [
-      "📌 Hook: Complex phrase: 'I am studying for exams!'",
-      "🤟 Lesson: Combine 'I', 'Study', 'Exam' signs sequentially.",
-      "💡 Tip: Break it into small gestures first, then combine.",
-      "❓ Practice: Record yourself signing the phrase."
-    ]
+    hook: "Learn Sorry",
+    lesson: "Make a fist and rub on chest.",
+    tip: "Show sincerity.",
+    practice: "Apologize with this sign when needed.",
+    image: "https://i.ibb.co/pdsmJ6m/sorry.png",
   },
   {
     id: 4,
-    level: "Uni",
-    sections: [
-      "📌 Hook: Express emotion: 'I feel happy today!'",
-      "🤟 Lesson: Sign 'I', 'Feel', 'Happy' with proper facial expression.",
-      "💡 Tip: Facial expression is key in sign language.",
-      "❓ Practice: Sign to a friend and ask them if they understand."
-    ]
-  }
+    hook: "Learn I Love You",
+    lesson: "Raise hand, extend thumb, index, pinky.",
+    tip: "Say it with heart.",
+    practice: "Express love to a family member.",
+    image: "https://i.ibb.co/Nj2Nz7q/ily.png",
+  },
+  // add more lessons up to billions in future...
 ];
 
-export default function SL({ userLevel = "JSS" }) {
-  const [phrase, setPhrase] = useState(null);
-  const [seenPhrases, setSeenPhrases] = useState([]);
-  const [motivation, setMotivation] = useState("");
+export default function SL() {
+  const [currentLesson, setCurrentLesson] = useState(0);
+  const [section, setSection] = useState("ASL"); // "ASL", "Communication", "Morals", "Ethique"
 
-  // Load seen phrases from localStorage
-  useEffect(() => {
-    const seen = JSON.parse(localStorage.getItem("dfb_seen_sl")) || [];
-    setSeenPhrases(seen);
-  }, []);
+  const lesson = aslLessons[currentLesson];
 
-  // Pick a new phrase
-  const pickPhrase = () => {
-    const available = SL_DB.filter(
-      (s) => s.level === userLevel && !seenPhrases.includes(s.id)
-    );
-
-    const finalList = available.length > 0 ? available : SL_DB.filter(s => s.level === userLevel);
-
-    const chosen = finalList[Math.floor(Math.random() * finalList.length)];
-    setPhrase(chosen);
-
-    // Save as seen
-    const newSeen = [...seenPhrases, chosen.id];
-    localStorage.setItem("dfb_seen_sl", JSON.stringify(newSeen));
-    setSeenPhrases(newSeen);
-
-    // Motivational Dr. E message
-    const messages = [
-      "💛 Keep practicing! Small steps lead to mastery.",
-      "🔥 Great job! Every gesture counts.",
-      "💡 Consistency makes you a pro in sign language!"
-    ];
-    setMotivation(messages[Math.floor(Math.random() * messages.length)]);
+  const nextLesson = () => {
+    setCurrentLesson((prev) => (prev + 1) % aslLessons.length);
   };
 
-  // On first load, pick a phrase
-  useEffect(() => {
-    pickPhrase();
-  }, []);
-
-  if (!phrase) return <p>Loading signs…</p>;
+  const prevLesson = () => {
+    setCurrentLesson((prev) => (prev - 1 + aslLessons.length) % aslLessons.length);
+  };
 
   return (
     <div style={styles.container}>
-      <h1>SL – Sign Language 🤟</h1>
+      <h1>🤟 Sign Language (SL)</h1>
+      <p style={{ opacity: 0.7 }}>Dr. E helps you learn, practice, and communicate with confidence.</p>
 
-      {phrase.sections.map((sec, i) => (
-        <div key={i} style={styles.card}>
-          <p>{sec}</p>
+      {/* Bottom Section Tabs */}
+      <div style={styles.tabRow}>
+        {["ASL", "Communication", "Morals", "Éthique"].map((sec) => (
+          <button
+            key={sec}
+            onClick={() => setSection(sec)}
+            style={{
+              ...styles.tabBtn,
+              background: section === sec ? "#FFD700" : "#333",
+              color: section === sec ? "#000" : "#fff",
+            }}
+          >
+            {sec}
+          </button>
+        ))}
+      </div>
+
+      {/* Section Content */}
+      {section === "ASL" && (
+        <div style={styles.lessonCard}>
+          <h3>{lesson.hook}</h3>
+          <img src={lesson.image} alt={lesson.hook} style={styles.image} />
+          <p><strong>Lesson:</strong> {lesson.lesson}</p>
+          <p><strong>Tip:</strong> {lesson.tip}</p>
+          <p><strong>Practice:</strong> {lesson.practice}</p>
+
+          <div style={styles.navRow}>
+            <button style={styles.navBtn} onClick={prevLesson}>⬅ Previous</button>
+            <button style={styles.navBtn} onClick={nextLesson}>Next ➡</button>
+          </div>
         </div>
-      ))}
-
-      {motivation && (
-        <p style={styles.motivation}>{motivation}</p>
       )}
 
-      <button style={styles.nextBtn} onClick={pickPhrase}>
-        🔄 Next Sign / Phrase
-      </button>
+      {section === "Communication" && (
+        <div style={styles.lessonCard}>
+          <h3>Communication Tips</h3>
+          <p>🗣 Speak slowly and clearly.</p>
+          <p>🤝 Use gestures and facial expressions.</p>
+          <p>💛 Be patient and encouraging.</p>
+          <p>Dr. E reminds you: Every student can communicate, you just need the right tools!</p>
+        </div>
+      )}
 
-      <p style={styles.footer}>
-        Daily practice helps you become fluent! 💪
-      </p>
+      {section === "Morals" && (
+        <div style={styles.lessonCard}>
+          <h3>Morals & Ethics</h3>
+          <p>🌟 Respect everyone’s learning journey.</p>
+          <p>🌟 Help peers when you can.</p>
+          <p>🌟 Stay honest in your studies.</p>
+          <p>Motivation: “Good character builds unstoppable students.” 💛</p>
+        </div>
+      )}
+
+      {section === "Éthique" && (
+        <div style={styles.lessonCard}>
+          <h3>Éthique</h3>
+          <p>🌍 Respect cultural differences in communication.</p>
+          <p>🤝 Collaborate with integrity.</p>
+          <p>💡 Dr. E says: Ethics strengthen your mind and your relationships.</p>
+        </div>
+      )}
     </div>
   );
 }
 
-// ---------- STYLES ----------
 const styles = {
-  container: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  card: {
-    background: "#1a1a1a",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 14,
-  },
-  nextBtn: {
-    width: "100%",
-    padding: 12,
-    background: "#FFD700",
-    borderRadius: 12,
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginTop: 10,
-  },
-  motivation: {
-    marginTop: 10,
-    marginBottom: 10,
-    fontStyle: "italic",
-    color: "#FFD700",
-  },
-  footer: {
-    textAlign: "center",
-    marginTop: 20,
-    opacity: 0.8,
-  },
+  container: { padding: 20, paddingBottom: 100 },
+  tabRow: { display: "flex", justifyContent: "space-around", marginBottom: 16 },
+  tabBtn: { padding: 10, borderRadius: 20, border: "none", cursor: "pointer", minWidth: 80 },
+  lessonCard: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
+  navRow: { display: "flex", justifyContent: "space-between", marginTop: 16 },
+  navBtn: { padding: 10, borderRadius: 12, background: "#FFD700", border: "none", cursor: "pointer", fontWeight: "bold" },
+  image: { width: "100%", borderRadius: 12, marginBottom: 10 },
 };
