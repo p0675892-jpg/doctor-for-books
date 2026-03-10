@@ -1,194 +1,126 @@
-import { useState, useEffect } from "react";
-import storiesData from './stories.json';
+import { useEffect, useState } from "react";
 
-export default function Stories() {
-  // 🔹 Initialize stories
-  const stories = storiesData || [];
-  const categories = [...new Set(stories.map(s => s.category))];
-  const [activeCategory, setActiveCategory] = useState(categories[0] || "");
-  const [index, setIndex] = useState(0);
-  const [likes, setLikes] = useState({});
-  const [open, setOpen] = useState(false);
+// Example stories database
+const STORIES_DB = [
+  {
+    id: 1,
+    level: "JSS",
+    sections: [
+      "📌 Hook: How I passed my first math test without cramming!",
+      "📖 Lesson: I reviewed for 10 minutes every day, focusing on formulas.",
+      "💡 Moral: Consistency beats last-minute cramming!",
+      "❓ Mini Question: What will you revise today for 10 minutes?"
+    ]
+  },
+  {
+    id: 2,
+    level: "JSS",
+    sections: [
+      "📌 Hook: Surviving a tricky English comprehension!",
+      "📖 Lesson: I read the passage twice and highlighted key words.",
+      "💡 Moral: Attention to detail makes a difference!",
+      "❓ Mini Question: Highlight three key points from your last lesson."
+    ]
+  },
+  {
+    id: 3,
+    level: "Uni",
+    sections: [
+      "📌 Hook: How I managed exam stress last semester",
+      "📖 Lesson: I broke study sessions into 45-minute focused blocks.",
+      "💡 Moral: Balance and short breaks improve memory retention.",
+      "❓ Mini Question: How will you structure your next study session?"
+    ]
+  },
+  {
+    id: 4,
+    level: "Uni",
+    sections: [
+      "📌 Hook: Group projects can be challenging!",
+      "📖 Lesson: I always clarify tasks upfront and assign roles.",
+      "💡 Moral: Planning ahead reduces stress and improves results.",
+      "❓ Mini Question: How will you plan your next group task?"
+    ]
+  }
+];
 
-  // 🔹 Hydrate likes from localStorage
+export default function Stories({ userLevel = "JSS" }) {
+  const [story, setStory] = useState(null);
+  const [seenStories, setSeenStories] = useState([]);
+
+  // Load seen stories from localStorage
   useEffect(() => {
-    const savedLikes = JSON.parse(localStorage.getItem("dfb_story_likes") || "{}");
-    setLikes(savedLikes);
+    const seen = JSON.parse(localStorage.getItem("dfb_seen_stories")) || [];
+    setSeenStories(seen);
   }, []);
 
-  const filteredStories = stories.filter(s => s.category === activeCategory);
-  const story = filteredStories[index] || null;
-  const likeCount = story ? (likes[story.id] || 0) : 0;
-
-  const like = () => {
-    if (!story) return;
-    const newLikes = { ...likes, [story.id]: (likes[story.id] || 0) + 1 };
-    setLikes(newLikes);
-    localStorage.setItem("dfb_story_likes", JSON.stringify(newLikes));
-  };
-
-  const nextStory = () => {
-    setOpen(false);
-    if (filteredStories.length === 0) return;
-    setIndex((index + 1) % filteredStories.length);
-  };
-
-  const surpriseStory = () => {
-    if (filteredStories.length <= 1) return;
-    let next;
-    do {
-      next = Math.floor(Math.random() * filteredStories.length);
-    } while (next === index);
-    setIndex(next);
-  };
-
-  // 📖 FULL READING MODE
-  if (open && story) {
-    return (
-      <div style={styles.readContainer}>
-        <h2>{story.title}</h2>
-        <small style={{ opacity: 0.7 }}>{story.type}</small>
-        <div style={styles.longText}>
-          {story.sections.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-        </div>
-        <button style={styles.backBtn} onClick={() => setOpen(false)}>
-          ⬅️ Back to Stories
-        </button>
-      </div>
+  // Pick a new story based on user level
+  const pickStory = () => {
+    const availableStories = STORIES_DB.filter(
+      (s) => s.level === userLevel && !seenStories.includes(s.id)
     );
-  }
 
-  // 📚 STORY LIST MODE
+    // If all stories seen, reset
+    const finalList = availableStories.length > 0 ? availableStories : STORIES_DB.filter(s => s.level === userLevel);
+
+    const chosen = finalList[Math.floor(Math.random() * finalList.length)];
+    setStory(chosen);
+
+    // Save story as seen
+    const newSeen = [...seenStories, chosen.id];
+    localStorage.setItem("dfb_seen_stories", JSON.stringify(newSeen));
+    setSeenStories(newSeen);
+  };
+
+  // On first load, pick a story
+  useEffect(() => {
+    pickStory();
+  }, []);
+
+  if (!story) return <p>Loading story…</p>;
+
   return (
     <div style={styles.container}>
-      <h1>Stories 📖</h1>
-      <p style={{ opacity: 0.7 }}>Small stories. Big understanding.</p>
-
-      {/* Tabs */}
-      <div style={styles.tabs}>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            style={{
-              ...styles.tabBtn,
-              background: activeCategory === cat ? "#FFD700" : "#1a1a1a",
-            }}
-            onClick={() => {
-              setActiveCategory(cat);
-              setIndex(0); // Reset index when changing category
-            }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {story ? (
-        <div style={styles.card}>
-          <small style={styles.type}>{story.type}</small>
-          <h2>{story.title}</h2>
-          <p>{story.sections[0].slice(0, 140)}...</p>
-          <button style={styles.readBtn} onClick={() => setOpen(true)}>
-            📖 Read Full Story
-          </button>
+      <h1>Stories 📚</h1>
+      {story.sections.map((sec, i) => (
+        <div key={i} style={styles.card}>
+          <p>{sec}</p>
         </div>
-      ) : (
-        <p>No stories in this category 😔</p>
-      )}
-
-      <div style={styles.actions}>
-        <button style={styles.likeBtn} onClick={like}>
-          ❤️ Like
-        </button>
-        <button style={styles.nextBtn} onClick={nextStory}>
-          ➡️ Next Story
-        </button>
-        <button style={styles.surpriseBtn} onClick={surpriseStory}>
-          🎲 Surprise me
-        </button>
-      </div>
-
-      <p style={{ opacity: 0.7 }}>{likeCount} readers loved this</p>
-      <p style={styles.footer}>“Stories teach what facts can’t.” 💛</p>
+      ))}
+      <button style={styles.nextBtn} onClick={pickStory}>
+        🔄 Next Story
+      </button>
+      <p style={styles.footer}>
+        Keep reading daily to unlock new stories and tips!
+      </p>
     </div>
   );
 }
 
+// ---------- STYLES ----------
 const styles = {
   container: {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
     padding: 20,
+    paddingBottom: 100,
   },
   card: {
     background: "#1a1a1a",
     padding: 16,
-    borderRadius: 14,
-    marginTop: 12,
-  },
-  type: {
-    opacity: 0.7,
-  },
-  actions: {
-    display: "flex",
-    gap: 10,
-    marginTop: 14,
-  },
-  likeBtn: {
-    flex: 1,
-    padding: 10,
+    borderRadius: 16,
+    marginBottom: 14,
   },
   nextBtn: {
-    flex: 1,
-    padding: 10,
-  },
-  surpriseBtn: {
-    flex: 1,
-    padding: 10,
-    background: "#1a1a1a",
-    borderRadius: 8,
-    color: "white",
-  },
-  readBtn: {
-    marginTop: 12,
-    padding: 10,
     width: "100%",
+    padding: 12,
     background: "#FFD700",
-    borderRadius: 10,
+    borderRadius: 12,
     fontWeight: "bold",
+    cursor: "pointer",
+    marginTop: 10,
   },
   footer: {
     textAlign: "center",
     marginTop: 20,
-    opacity: 0.7,
-  },
-  readContainer: {
-    padding: 20,
-  },
-  longText: {
-    marginTop: 16,
-    lineHeight: 1.8,
-    fontSize: 16,
-    maxHeight: "65vh",
-    overflowY: "auto",
-  },
-  backBtn: {
-    marginTop: 16,
-    padding: 12,
-    width: "100%",
-  },
-  tabs: {
-    display: "flex",
-    gap: 8,
-    margin: "12px 0",
-  },
-  tabBtn: {
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: "none",
-    color: "white",
+    opacity: 0.8,
   },
 };
