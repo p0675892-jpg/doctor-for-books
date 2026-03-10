@@ -1,243 +1,103 @@
-import { useEffect, useState } from "react";
-import { FaUserMd, FaFire, FaStar, FaBullseye, FaBrain } from "react-icons/fa";
-import { getWeakArea } from "../utils/weakTracker";
+import { useState, useEffect } from "react";
+
+// Example data for JSS and Uni
+const TOPICS = {
+  JSS: [
+    { id: 1, title: "Math: Algebra Basics", summary: "Learn equations, solve simple algebra problems." },
+    { id: 2, title: "Biology: Plant Cells", summary: "Understand the structure and function of plant cells." },
+    { id: 3, title: "English: Essay Writing", summary: "Focus on grammar and sentence structure." }
+  ],
+  Uni: [
+    { id: 1, title: "Math: Linear Algebra", summary: "Matrix operations, vector spaces, eigenvalues." },
+    { id: 2, title: "Biology: Molecular Genetics", summary: "DNA, RNA, protein synthesis and regulation." },
+    { id: 3, title: "English: Academic Writing", summary: "Focus on argument development and referencing." }
+  ]
+};
 
 export default function Home({ user, setTab }) {
-  const [name, setName] = useState("Student");
-  const [xp, setXp] = useState(0);
-  const [streak, setStreak] = useState(1);
-  const [checked, setChecked] = useState(false);
-  const [weakArea, setWeakArea] = useState("General Studies");
+  const [level, setLevel] = useState("JSS"); // Default level
+  const [continueLearning, setContinueLearning] = useState(null);
 
-  // 🔄 LOAD DATA
+  // Load user info (mock) and continue learning
   useEffect(() => {
-    const load = () => {
-      setName(localStorage.getItem("dfb_name") || "Student");
-      setXp(parseInt(localStorage.getItem("dfb_xp")) || 0);
-      setStreak(parseInt(localStorage.getItem("dfb_streak")) || 1);
-      setWeakArea(getWeakArea());
+    // Example: decide level from user data
+    if (user?.level) setLevel(user.level);
 
-      const today = new Date().toDateString();
-      setChecked(localStorage.getItem("dfb_last_check") === today);
-    };
+    const lastTopic = JSON.parse(localStorage.getItem("dfb_continue_learning")) || null;
+    setContinueLearning(lastTopic);
+  }, [user]);
 
-    load();
-    window.addEventListener("storage", load);
-    return () => window.removeEventListener("storage", load);
-  }, []);
-
-  const level = Math.floor(xp / 100) + 1;
-  const progress = xp % 100;
-
-  // 📅 DAILY CHECK-IN
-  const checkIn = () => {
-    if (checked) return;
-
-    const today = new Date().toDateString();
-    const newXP = xp + 5;
-    const newStreak = streak + 1;
-
-    localStorage.setItem("dfb_last_check", today);
-    localStorage.setItem("dfb_xp", newXP);
-    localStorage.setItem("dfb_streak", newStreak);
-
-    setXp(newXP);
-    setStreak(newStreak);
-    setChecked(true);
+  // When user clicks a topic to continue
+  const startTopic = (topic) => {
+    setContinueLearning(topic);
+    localStorage.setItem("dfb_continue_learning", JSON.stringify(topic));
+    setTab("ask"); // Could navigate to Ask tab or lesson page
   };
 
-  // 🧑‍⚕️ DR. E PERSONALITY
-  const messages = [
-    "Your brain is warming up nicely 🧠",
-    "Consistency beats talent 💪",
-    "Tiny progress compounds 🌱",
-    "Future you is quietly cheering 📣",
-    "Motion beats perfection ✨",
+  // Motivational/emotional boost
+  const motivations = [
+    "💛 Every study session counts!",
+    "🔥 Small steps every day lead to big results!",
+    "💡 Keep going, you’re improving every day!"
   ];
-
-  const insights = [
-    "Teaching someone boosts retention 📚",
-    "Sleep strengthens memory 😴",
-    "Practice beats rereading 💡",
-    "Confusion is the start of mastery 🧠",
-  ];
-
-  const diagnoses = [
-    "Brain overheating detected… prescribing water 💧",
-    "Motivation level low — applying confidence patch 💛",
-    "Overthinking virus found — treatment ongoing 🧠",
-    "Progress detected. Continue immediately 🚀",
-    "Minor confusion spotted — this is how learning starts ✨",
-  ];
-
-  const message = messages[Math.floor(Math.random() * messages.length)];
-  const insight = insights[Math.floor(Math.random() * insights.length)];
-  const diagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
+  const motivation = motivations[Math.floor(Math.random() * motivations.length)];
 
   return (
     <div style={styles.container}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <div style={styles.avatar}>
-          <FaUserMd />
-        </div>
+      {/* Welcome */}
+      <h1>Welcome back, {user?.displayName || "Student"}! 👋</h1>
+      <p style={{ opacity: 0.7 }}>{motivation}</p>
 
-        <div>
-          <h1>Hello {name} 👋</h1>
-          <p style={styles.sub}>Dr. E says: {message}</p>
-        </div>
+      {/* Quick Revision Cards */}
+      <h2>Quick Revision</h2>
+      <div style={styles.cardsContainer}>
+        {TOPICS[level].map((topic) => (
+          <div key={topic.id} style={styles.card} onClick={() => startTopic(topic)}>
+            <h3>{topic.title}</h3>
+            <p>{topic.summary}</p>
+          </div>
+        ))}
       </div>
 
-      {/* DR. E PANEL */}
-      <div style={styles.doctorPanel}>
-        <FaUserMd style={{ fontSize: 28 }} />
-        <div>
-          <strong>Dr. E Diagnosis:</strong>
-          <p style={{ margin: 0, opacity: 0.8 }}>{diagnosis}</p>
-        </div>
-      </div>
-
-      {/* DAILY CHECK-IN */}
-      <div style={styles.card}>
-        <h3><FaBullseye /> Daily Check-In</h3>
-
-        {checked ? (
-          <p>✅ Ritual complete today</p>
-        ) : (
-          <button style={styles.checkBtn} onClick={checkIn}>
-            Begin Today (+5 XP)
+      {/* Continue Learning */}
+      {continueLearning && (
+        <div style={styles.card}>
+          <h3>📌 Continue Learning</h3>
+          <p>{continueLearning.title}</p>
+          <button style={styles.continueBtn} onClick={() => startTopic(continueLearning)}>
+            Continue
           </button>
-        )}
-      </div>
-
-      {/* PROGRESS */}
-      <div style={styles.card}>
-        <h3><FaStar /> Level {level}</h3>
-
-        <div style={styles.bar}>
-          <div style={{ ...styles.fill, width: progress + "%" }} />
         </div>
-
-        <small>{progress}% to next level</small>
-
-        <p style={{ marginTop: 6 }}>
-          <FaFire /> {streak}-day streak — most people quit before this.
-        </p>
-      </div>
-
-      {/* TODAY'S MISSION */}
-      <div style={styles.card}>
-        <h3><FaBullseye /> Today’s Mission</h3>
-        <ul style={styles.missionList}>
-          <li>Ask Dr. E for help</li>
-          <li>Finish one lesson</li>
-          <li>Read one story</li>
-        </ul>
-      </div>
-
-      {/* WEAK AREA */}
-      <div style={styles.card}>
-        ⚠️ Focus Area: {weakArea}
-      </div>
-
-      {/* INSIGHT */}
-      <div style={styles.card}>
-        <FaBrain /> Daily Insight
-        <p style={{ marginTop: 6 }}>{insight}</p>
-      </div>
-
-      {/* QUICK ACTIONS */}
-      <div style={styles.actions}>
-        <div style={styles.actionCard} onClick={() => setTab("ask")}>
-          🔍 Ask Dr. E
-        </div>
-
-        <div style={styles.actionCard} onClick={() => setTab("sign")}>
-          🤟 Continue Lessons
-        </div>
-
-        <div style={styles.actionCard} onClick={() => setTab("stories")}>
-          📖 Read a Story
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <p style={styles.footer}>
-        “Small effort today = powerful tomorrow 💛”
-      </p>
+      )}
     </div>
   );
 }
 
+// ---------- STYLES ----------
 const styles = {
-  container: { padding: 20, paddingBottom: 120, overflowY: "auto" },
-
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    marginBottom: 16,
+  container: {
+    padding: 20,
+    paddingBottom: 100,
   },
-
-  avatar: { fontSize: 52 },
-  sub: { opacity: 0.7 },
-
+  cardsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    marginBottom: 20,
+  },
   card: {
     background: "#1a1a1a",
     padding: 16,
     borderRadius: 16,
-    marginBottom: 14,
+    cursor: "pointer",
   },
-
-  checkBtn: {
+  continueBtn: {
     marginTop: 8,
-    padding: 12,
-    background: "#FFD700",
+    padding: 10,
+    width: "100%",
     borderRadius: 12,
-    fontWeight: "bold",
-    border: "none",
-    cursor: "pointer",
-  },
-
-  bar: {
-    background: "#333",
-    height: 12,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 8,
-  },
-
-  fill: { background: "#FFD700", height: "100%" },
-
-  missionList: { marginTop: 8, paddingLeft: 20, opacity: 0.9 },
-
-  actions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    marginTop: 10,
-  },
-
-  actionCard: {
     background: "#FFD700",
-    color: "#000",
-    padding: 16,
-    borderRadius: 16,
     fontWeight: "bold",
-    textAlign: "center",
     cursor: "pointer",
-  },
-
-  footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
-
-  doctorPanel: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    background: "#121212",
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 14,
-    border: "1px solid #222",
   },
 };
