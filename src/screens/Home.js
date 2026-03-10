@@ -1,103 +1,162 @@
 import { useState, useEffect } from "react";
-
-// Example data for JSS and Uni
-const TOPICS = {
-  JSS: [
-    { id: 1, title: "Math: Algebra Basics", summary: "Learn equations, solve simple algebra problems." },
-    { id: 2, title: "Biology: Plant Cells", summary: "Understand the structure and function of plant cells." },
-    { id: 3, title: "English: Essay Writing", summary: "Focus on grammar and sentence structure." }
-  ],
-  Uni: [
-    { id: 1, title: "Math: Linear Algebra", summary: "Matrix operations, vector spaces, eigenvalues." },
-    { id: 2, title: "Biology: Molecular Genetics", summary: "DNA, RNA, protein synthesis and regulation." },
-    { id: 3, title: "English: Academic Writing", summary: "Focus on argument development and referencing." }
-  ]
-};
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Home({ user, setTab }) {
-  const [level, setLevel] = useState("JSS"); // Default level
-  const [continueLearning, setContinueLearning] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [checkupDone, setCheckupDone] = useState(false);
+  const [dailyBrainDose, setDailyBrainDose] = useState({});
+  const [motivation, setMotivation] = useState("");
 
-  // Load user info (mock) and continue learning
+  // Load user data from Firebase
   useEffect(() => {
-    // Example: decide level from user data
-    if (user?.level) setLevel(user.level);
-
-    const lastTopic = JSON.parse(localStorage.getItem("dfb_continue_learning")) || null;
-    setContinueLearning(lastTopic);
+    async function fetchUser() {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+        const lastCheck = docSnap.data().lastCheckupDate;
+        const today = new Date().toDateString();
+        setCheckupDone(lastCheck === today);
+      }
+    }
+    fetchUser();
   }, [user]);
 
-  // When user clicks a topic to continue
-  const startTopic = (topic) => {
-    setContinueLearning(topic);
-    localStorage.setItem("dfb_continue_learning", JSON.stringify(topic));
-    setTab("ask"); // Could navigate to Ask tab or lesson page
-  };
+  // Generate Daily Brain Dose (can expand later)
+  useEffect(() => {
+    const dose = {
+      topic: "Inertia",
+      idea: "Inertia means an object resists change in motion.",
+      example: "When a bus stops suddenly, your body moves forward.",
+      miniChallenge: "Why do passengers lean backward when a bus starts moving?",
+      answer: "Due to inertia, your body wants to keep moving at the same speed."
+    };
+    setDailyBrainDose(dose);
+  }, []);
 
-  // Motivational/emotional boost
-  const motivations = [
-    "💛 Every study session counts!",
-    "🔥 Small steps every day lead to big results!",
-    "💡 Keep going, you’re improving every day!"
-  ];
-  const motivation = motivations[Math.floor(Math.random() * motivations.length)];
+  // Handle Doctor Daily Checkup
+  const handleCheckup = async (wentWell) => {
+    if (!userData) return;
+    const docRef = doc(db, "users", user.uid);
+    const today = new Date().toDateString();
+
+    // Update checkup date and increment visits
+    await updateDoc(docRef, {
+      lastCheckupDate: today,
+      doctorVisits: (userData.doctorVisits || 0) + 1
+    });
+
+    setCheckupDone(true);
+    setUserData((prev) => ({
+      ...prev,
+      doctorVisits: (prev.doctorVisits || 0) + 1,
+      lastCheckupDate: today
+    }));
+
+    // Set motivation based on answer
+    if (wentWell) {
+      setMotivation("🎉 Amazing! Keep that energy going! Every step counts.");
+    } else {
+      setMotivation("💛 It's okay! Tomorrow is a new day. You can still shine.");
+    }
+  };
 
   return (
     <div style={styles.container}>
       {/* Welcome */}
-      <h1>Welcome back, {user?.displayName || "Student"}! 👋</h1>
-      <p style={{ opacity: 0.7 }}>{motivation}</p>
+      <h1>Welcome back, {userData?.name || "Student"} 👋</h1>
+      <p style={{ opacity: 0.7 }}>Every small step today builds your future.</p>
 
-      {/* Quick Revision Cards */}
-      <h2>Quick Revision</h2>
-      <div style={styles.cardsContainer}>
-        {TOPICS[level].map((topic) => (
-          <div key={topic.id} style={styles.card} onClick={() => startTopic(topic)}>
-            <h3>{topic.title}</h3>
-            <p>{topic.summary}</p>
+      {/* Doctor Daily Checkup */}
+      {!checkupDone && (
+        <div style={styles.card}>
+          <h3>Doctor's check-up</h3>
+          <p>Hope you did well in school today?</p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button style={styles.checkBtn} onClick={() => handleCheckup(true)}>Yes ✅</button>
+            <button style={styles.checkBtn} onClick={() => handleCheckup(false)}>Not really ❌</button>
           </div>
-        ))}
+        </div>
+      )}
+
+      {motivation && (
+        <div style={styles.card}>
+          <h3>Dr E Motivation</h3>
+          <p>{motivation}</p>
+        </div>
+      )}
+
+      {/* Daily Brain Dose */}
+      <div style={styles.card}>
+        <h3>🧠 Daily Brain Dose</h3>
+        <p><strong>Topic:</strong> {dailyBrainDose.topic}</p>
+        <p><strong>Quick Idea:</strong> {dailyBrainDose.idea}</p>
+        <p><strong>Example:</strong> {dailyBrainDose.example}</p>
+        <p><strong>Mini Challenge:</strong> {dailyBrainDose.miniChallenge}</p>
+        <button
+          style={styles.mainBtn}
+          onClick={() => alert(dailyBrainDose.answer)}
+        >
+          Reveal Answer
+        </button>
+      </div>
+
+      {/* Quick Revision */}
+      <div style={styles.card}>
+        <h3>📝 Quick Revision</h3>
+        <p>Small Doctor Test</p>
+        <button style={styles.mainBtn} onClick={() => setTab("ask")}>
+          Take Test
+        </button>
       </div>
 
       {/* Continue Learning */}
-      {continueLearning && (
-        <div style={styles.card}>
-          <h3>📌 Continue Learning</h3>
-          <p>{continueLearning.title}</p>
-          <button style={styles.continueBtn} onClick={() => startTopic(continueLearning)}>
-            Continue
-          </button>
-        </div>
-      )}
+      <div style={styles.card}>
+        <h3>📚 Continue Learning</h3>
+        <p>Last topic: {userData?.lastTopic || "No topic yet"}</p>
+        <button style={styles.mainBtn} onClick={() => setTab("ask")}>
+          Continue
+        </button>
+      </div>
+
+      {/* Doctor Visit Counter */}
+      <div style={styles.card}>
+        <h3>🏥 Educational Doctor Visits</h3>
+        <p>{userData?.doctorVisits || 0} visits</p>
+      </div>
     </div>
   );
 }
 
-// ---------- STYLES ----------
+/* ---------- STYLES ---------- */
 const styles = {
   container: {
     padding: 20,
     paddingBottom: 100,
   },
-  cardsContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    marginBottom: 20,
-  },
   card: {
     background: "#1a1a1a",
     padding: 16,
     borderRadius: 16,
+    marginBottom: 14,
+  },
+  checkBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    fontWeight: "bold",
+    background: "#FFD700",
+    border: "none",
     cursor: "pointer",
   },
-  continueBtn: {
-    marginTop: 8,
-    padding: 10,
+  mainBtn: {
     width: "100%",
-    borderRadius: 12,
+    padding: 12,
     background: "#FFD700",
+    borderRadius: 12,
     fontWeight: "bold",
+    marginTop: 8,
     cursor: "pointer",
   },
 };
