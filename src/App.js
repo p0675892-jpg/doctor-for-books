@@ -19,15 +19,12 @@ class ErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false, errorMsg: "" };
   }
-
   static getDerivedStateFromError(error) {
     return { hasError: true, errorMsg: error.message };
   }
-
   componentDidCatch(error, info) {
     console.error("ErrorBoundary caught:", error, info);
   }
-
   render() {
     if (this.state.hasError) {
       return (
@@ -65,6 +62,7 @@ export default function App() {
   // Not signed in
   if (!user) return <AuthScreen />;
 
+  // Render tabs
   const renderScreen = () => {
     switch (tab) {
       case "home": return <Home user={user} setTab={setTab} />;
@@ -134,6 +132,22 @@ const styles = {
     alignItems: "center",
     zIndex: 999,
   },
-  navBtn: { background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", fontSize: 12, cursor: "pointer" },
-  loading: { height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0b0b0b", color: "#fff", textAlign: "center" },
+  navBtn: {
+    background: "none",
+    border: "none",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  loading: {
+    height: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0b0b0b",
+    color: "#fff",
+    textAlign: "center",
+  },
 };
