@@ -1,190 +1,147 @@
 import { useState, useEffect } from "react";
-import { recordWeakArea } from "../utils/weakTracker";
 
-export default function Sl() {
-  const [mode, setMode] = useState("menu");
-  const [lesson, setLesson] = useState(null);
-  const [message, setMessage] = useState("");
-  const [xp, setXp] = useState(0);
-  const [answered, setAnswered] = useState(false);
+// Example SL phrases database
+const SL_DB = [
+  {
+    id: 1,
+    level: "JSS",
+    sections: [
+      "📌 Hook: Learn to greet your friend in sign language!",
+      "🤟 Lesson: Sign 'Hello' by raising your hand with palm facing out and wave.",
+      "💡 Tip: Smile while signing, it makes your greeting friendlier!",
+      "❓ Practice: Try signing 'Hello' to a family member now."
+    ]
+  },
+  {
+    id: 2,
+    level: "JSS",
+    sections: [
+      "📌 Hook: Express 'Thank you' in sign language",
+      "🤟 Lesson: Place your fingers on your chin and move them forward.",
+      "💡 Tip: Repeat daily for muscle memory.",
+      "❓ Practice: Thank someone today using this sign!"
+    ]
+  },
+  {
+    id: 3,
+    level: "Uni",
+    sections: [
+      "📌 Hook: Complex phrase: 'I am studying for exams!'",
+      "🤟 Lesson: Combine 'I', 'Study', 'Exam' signs sequentially.",
+      "💡 Tip: Break it into small gestures first, then combine.",
+      "❓ Practice: Record yourself signing the phrase."
+    ]
+  },
+  {
+    id: 4,
+    level: "Uni",
+    sections: [
+      "📌 Hook: Express emotion: 'I feel happy today!'",
+      "🤟 Lesson: Sign 'I', 'Feel', 'Happy' with proper facial expression.",
+      "💡 Tip: Facial expression is key in sign language.",
+      "❓ Practice: Sign to a friend and ask them if they understand."
+    ]
+  }
+];
 
-  // Load XP safely
+export default function SL({ userLevel = "JSS" }) {
+  const [phrase, setPhrase] = useState(null);
+  const [seenPhrases, setSeenPhrases] = useState([]);
+  const [motivation, setMotivation] = useState("");
+
+  // Load seen phrases from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
-      setXp(savedXP);
-    }
+    const seen = JSON.parse(localStorage.getItem("dfb_seen_sl")) || [];
+    setSeenPhrases(seen);
   }, []);
 
-  const addXP = () => {
-    setXp(prevXp => {
-      const newXP = prevXp + 8;
-      if (typeof window !== "undefined") localStorage.setItem("dfb_xp", newXP);
-      return newXP;
-    });
+  // Pick a new phrase
+  const pickPhrase = () => {
+    const available = SL_DB.filter(
+      (s) => s.level === userLevel && !seenPhrases.includes(s.id)
+    );
+
+    const finalList = available.length > 0 ? available : SL_DB.filter(s => s.level === userLevel);
+
+    const chosen = finalList[Math.floor(Math.random() * finalList.length)];
+    setPhrase(chosen);
+
+    // Save as seen
+    const newSeen = [...seenPhrases, chosen.id];
+    localStorage.setItem("dfb_seen_sl", JSON.stringify(newSeen));
+    setSeenPhrases(newSeen);
+
+    // Motivational Dr. E message
+    const messages = [
+      "💛 Keep practicing! Small steps lead to mastery.",
+      "🔥 Great job! Every gesture counts.",
+      "💡 Consistency makes you a pro in sign language!"
+    ];
+    setMotivation(messages[Math.floor(Math.random() * messages.length)]);
   };
 
-  const level = Math.floor(xp / 100) + 1;
+  // On first load, pick a phrase
+  useEffect(() => {
+    pickPhrase();
+  }, []);
 
-  // ===== Lessons =====
-  const signLessons = [
-    {
-      title: "Hello & Thank You",
-      images: [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/ASL Hello.jpg/800px-ASL Hello.jpg",
-        "https://upload.wikimedia.org/wikipedia/commons/e/e0/ASL_Thank_You.jpg",
-      ],
-      content: "Sign language relies on clear movement and facial expression. 'Hello' and 'Thank you' are foundational signs.",
-      question: "Which sign expresses gratitude?",
-      options: ["Hello", "Thank you", "Welcome"],
-      correct: "Thank you",
-      type: "Sign Language",
-    },
-    {
-      title: "Common Phrases",
-      images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/ASL_I_Love_You.jpg/800px-ASL_I_Love_You.jpg"],
-      content: "Learn essential phrases to connect with the Deaf community.",
-      question: "What's the ASL sign for 'I love you'?",
-      options: ["Thumb up", "Open hand", "Thumb, pinky, and index"],
-      correct: "Thumb, pinky, and index",
-      type: "Sign Language",
-    },
-  ];
+  if (!phrase) return <p>Loading signs…</p>;
 
-  const langLessons = [
-    {
-      title: "Word Wizardry",
-      content: "Prefixes and suffixes are like magic spells! 🧙‍♂️ Change word meanings with '-un', 're-', and 'pre-'.",
-      question: "What does 'preview' mean?",
-      options: ["View before", "View again", "View wrongly"],
-      correct: "View before",
-      type: "Linguistics",
-    },
-    {
-      title: "Language Games",
-      content: "Did you know words can be like puzzles? 🧩 Unscramble: 'listen' = 'silent'!",
-      question: "What's the anagram of 'acts'?",
-      options: ["Cats", "Cast", "Scat"],
-      correct: "Cats",
-      type: "Linguistics",
-    },
-  ];
-
-  const emotionalStories = [
-    {
-      title: "The Quiet Student",
-      text: "She rarely spoke in class. Not because she had nothing to say, but because words tangled before leaving her mouth...",
-    },
-    {
-      title: "Misunderstood",
-      text: "Two students had equal knowledge. One spoke confidently, the other hesitated. Learning to express ideas reshapes opportunities.",
-    },
-  ];
-
-  // ===== Lesson Handlers =====
-  const startLesson = (l) => {
-    setLesson(l);
-    setMode("class");
-    setMessage("");
-    setAnswered(false);
-  };
-
-  const checkAnswer = (choice) => {
-    if (answered) return;
-    setAnswered(true);
-    if (choice === lesson.correct) {
-      addXP();
-      recordWeakArea(lesson.type, -1);
-      setMessage("Correct. Skill confirmed 💛 +8 XP");
-    } else {
-      recordWeakArea(lesson.type, 2);
-      setMessage("Hmm… accuracy matters. Try understanding, not guessing.");
-    }
-  };
-
-  // ===== Render =====
   return (
     <div style={styles.container}>
-      <h1>Communication Hub 🌍</h1>
-      <div style={styles.xpBox}> ⭐ Level {level} — {xp} XP </div>
+      <h1>SL – Sign Language 🤟</h1>
 
-      {mode === "menu" && (
-        <>
-          <p>Find your voice, connect with others ✨</p>
-          <div style={styles.card} onClick={() => setMode("sign")}>🤟 ASL: Sign Language</div>
-          <div style={styles.card} onClick={() => setMode("language")}>🗣️ Language Lab</div>
-          <div style={styles.card} onClick={() => setMode("stories")}>💛 Stories & Insights</div>
-          <div style={styles.card} onClick={() => setMode("insight")}>🧠 Communication Tips</div>
-        </>
-      )}
-
-      {mode === "sign" && (
-        <>
-          <h2>ASL Sign Language</h2>
-          {signLessons.map((l, i) => (
-            <div key={i} style={styles.card} onClick={() => startLesson(l)}>{l.title}</div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
-
-      {mode === "language" && (
-        <>
-          <h2>Language Lab</h2>
-          {langLessons.map((l, i) => (
-            <div key={i} style={styles.card} onClick={() => startLesson(l)}>{l.title}</div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
-
-      {mode === "class" && lesson && (
-        <div style={styles.card}>
-          <h2>{lesson.title}</h2>
-          {lesson.images && lesson.images.map((img, i) => (
-            <img key={i} src={img} alt="" style={styles.image} loading="lazy" />
-          ))}
-          <p>{lesson.content}</p>
-          <h3>{lesson.question}</h3>
-          {lesson.options.map((o, i) => (
-            <button key={i} style={styles.option} onClick={() => checkAnswer(o)}>{o}</button>
-          ))}
-          {message && <p style={{ marginTop: 12 }}>{message}</p>}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
+      {phrase.sections.map((sec, i) => (
+        <div key={i} style={styles.card}>
+          <p>{sec}</p>
         </div>
+      ))}
+
+      {motivation && (
+        <p style={styles.motivation}>{motivation}</p>
       )}
 
-      {mode === "stories" && (
-        <>
-          <h2>Stories & Insights</h2>
-          {emotionalStories.map((s, i) => (
-            <div key={i} style={styles.card}>
-              <h3>{s.title}</h3>
-              <p style={{ lineHeight: 1.7 }}>{s.text}</p>
-            </div>
-          ))}
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
+      <button style={styles.nextBtn} onClick={pickPhrase}>
+        🔄 Next Sign / Phrase
+      </button>
 
-      {mode === "insight" && (
-        <>
-          <div style={styles.card}>
-            <p>Clear communication increases perceived intelligence.</p>
-            <p>People trust confident speakers more.</p>
-            <p>Understanding language improves thinking itself.</p>
-          </div>
-          <button onClick={() => setMode("menu")}>⬅️ Back</button>
-        </>
-      )}
+      <p style={styles.footer}>
+        Daily practice helps you become fluent! 💪
+      </p>
     </div>
   );
 }
 
+// ---------- STYLES ----------
 const styles = {
-  container: { padding: 20, paddingBottom: 100 },
-  xpBox: { background: "#FFD700", color: "#000", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: "bold" },
-  card: { background: "#1a1a1a", padding: 16, borderRadius: 14, marginBottom: 12, cursor: "pointer" },
-  option: { display: "block", marginTop: 8, padding: 12, width: "100%" },
-  image: { width: "100%", borderRadius: 12, marginBottom: 10 },
+  container: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  card: {
+    background: "#1a1a1a",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 14,
+  },
+  nextBtn: {
+    width: "100%",
+    padding: 12,
+    background: "#FFD700",
+    borderRadius: 12,
+    fontWeight: "bold",
+    cursor: "pointer",
+    marginTop: 10,
+  },
+  motivation: {
+    marginTop: 10,
+    marginBottom: 10,
+    fontStyle: "italic",
+    color: "#FFD700",
+  },
+  footer: {
+    textAlign: "center",
+    marginTop: 20,
+    opacity: 0.8,
+  },
 };
