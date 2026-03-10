@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "./firebase"; // your firebase setup
+import { auth, db } from "../firebase"; // your firebase setup
 import { doc, updateDoc } from "firebase/firestore";
 
 // For web payments (Stripe / Paystack)
@@ -139,3 +139,4 @@ const styles = {
   settingsOption: { width: "100%", padding: 10, marginTop: 8, borderRadius: 12, background: "#FFD700", color: "#000", border: "none", cursor: "pointer" },
   footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
 };
+
