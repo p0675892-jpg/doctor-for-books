@@ -1,17 +1,17 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
+import AuthScreen from "./AuthScreen";
+import Sl from "./screens/Sl";
 import Home from "./screens/Home";
 import Ask from "./screens/Ask";
-import SnapExplain from "./screens/SnapExplain";
-import Sl from "./screens/Sl";
-import Stories from "./screens/Stories";
 import Profile from "./screens/Profile";
 import Settings from "./screens/Settings";
-import { FaHome, FaQuestionCircle, FaCamera, FaHandPaper, FaBook, FaUser } from "react-icons/fa";
+import SnapExplain from "./screens/SnapExplain";
+import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser, FaCamera, FaCog } from 'react-icons/fa';
 
-// Lazy load Stories for faster mobile load
-const LazyStories = lazy(() => import("./screens/Stories"));
+// Lazy load Stories to reduce initial load
+const Stories = lazy(() => import("./screens/Stories"));
 
 // ---------- Error Boundary ----------
 class ErrorBoundary extends React.Component {
@@ -19,12 +19,15 @@ class ErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false, errorMsg: "" };
   }
+
   static getDerivedStateFromError(error) {
     return { hasError: true, errorMsg: error.message };
   }
+
   componentDidCatch(error, info) {
     console.error("ErrorBoundary caught:", error, info);
   }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -64,26 +67,19 @@ export default function App() {
 
   const renderScreen = () => {
     switch (tab) {
-      case "home":
-        return <Home user={user} setTab={setTab} />;
-      case "ask":
-        return <Ask user={user} />;
-      case "snap":
-        return <SnapExplain user={user} />;
-      case "sl":
-        return <Sl />;
+      case "home": return <Home user={user} setTab={setTab} />;
+      case "ask": return <Ask user={user} />;
+      case "sl": return <Sl />;
       case "stories":
         return (
           <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories...</div>}>
-            <LazyStories />
+            <Stories />
           </Suspense>
         );
-      case "profile":
-        return <Profile user={user} setTab={setTab} />;
-      case "settings":
-        return <Settings user={user} setTab={setTab} />;
-      default:
-        return <Home user={user} setTab={setTab} />;
+      case "snap": return <SnapExplain />;
+      case "profile": return <Profile user={user} setTab={setTab} />;
+      case "settings": return <Settings user={user} setTab={setTab} />;
+      default: return <Home user={user} setTab={setTab} />;
     }
   };
 
@@ -94,10 +90,11 @@ export default function App() {
         <nav style={styles.nav}>
           <NavBtn icon={<FaHome size={22} />} label="Home" active={tab === "home"} onClick={() => setTab("home")} />
           <NavBtn icon={<FaQuestionCircle size={22} />} label="Ask" active={tab === "ask"} onClick={() => setTab("ask")} />
-          <NavBtn icon={<FaCamera size={22} />} label="Snap" active={tab === "snap"} onClick={() => setTab("snap")} />
           <NavBtn icon={<FaHandPaper size={22} />} label="SL" active={tab === "sl"} onClick={() => setTab("sl")} />
           <NavBtn icon={<FaBook size={22} />} label="Stories" active={tab === "stories"} onClick={() => setTab("stories")} />
+          <NavBtn icon={<FaCamera size={22} />} label="Snap" active={tab === "snap"} onClick={() => setTab("snap")} />
           <NavBtn icon={<FaUser size={22} />} label="Profile" active={tab === "profile"} onClick={() => setTab("profile")} />
+          <NavBtn icon={<FaCog size={22} />} label="Settings" active={tab === "settings"} onClick={() => setTab("settings")} />
         </nav>
       </div>
     </ErrorBoundary>
@@ -120,7 +117,7 @@ function NavBtn({ icon, label, active, onClick }) {
   );
 }
 
-// ---------- Styles ----------
+// ---------- STYLES ----------
 const styles = {
   app: { background: "#000", color: "white", minHeight: "100vh", fontFamily: "system-ui" },
   screen: { paddingBottom: 80 },
