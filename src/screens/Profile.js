@@ -1,305 +1,107 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Profile({ setTab, user }) {
-  const [name, setName] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [xp, setXp] = useState(0);
+// Example badges database (could later be dynamic per user)
+const BADGES = [
+  { id: 1, title: "First Revision", description: "Completed your first topic", level: "JSS" },
+  { id: 2, title: "Weekly Streak", description: "Studied 7 days in a row", level: "JSS" },
+  { id: 3, title: "First Quiz", description: "Completed your first quiz", level: "Uni" },
+  { id: 4, title: "Consistency Pro", description: "Studied 30 days in a row", level: "Uni" },
+];
 
-  const progress = 65;
-  const strongAreas = ["English", "Reading", "Biology"];
-  const weakAreas = ["Mathematics", "Physics"];
+export default function Profile({ user, setTab }) {
+  const [level, setLevel] = useState("JSS");
+  const [streak, setStreak] = useState(0);
+  const [earnedBadges, setEarnedBadges] = useState([]);
 
-  // LOAD DATA
+  // Load user info and progress
   useEffect(() => {
-    const savedName = localStorage.getItem("dfb_name");
-    const savedXP = parseInt(localStorage.getItem("dfb_xp")) || 0;
+    if (user?.level) setLevel(user.level);
 
-    setXp(savedXP);
+    // Load streaks from localStorage (could be per user)
+    const s = parseInt(localStorage.getItem(`${user.uid}_streak`)) || 0;
+    setStreak(s);
 
-    if (savedName) setName(savedName);
-    else setName(user?.email?.split("@")[0] || "Student");
+    // Load badges earned
+    const badges = JSON.parse(localStorage.getItem(`${user.uid}_badges`)) || [];
+    setEarnedBadges(badges);
   }, [user]);
 
-  const saveName = () => {
-    localStorage.setItem("dfb_name", name);
-    setEditing(false);
+  // Mock function to simulate earning a badge
+  const earnBadge = (badge) => {
+    if (!earnedBadges.includes(badge.id)) {
+      const newBadges = [...earnedBadges, badge.id];
+      setEarnedBadges(newBadges);
+      localStorage.setItem(`${user.uid}_badges`, JSON.stringify(newBadges));
+    }
   };
 
-  const level = Math.floor(xp / 100) + 1;
-
   return (
-    <div style={styles.page}>
+    <div style={styles.container}>
+      <h1>Profile – {user?.displayName || "Student"}</h1>
+      <p style={{ opacity: 0.7 }}>Level: {level}</p>
 
-      {/* HEADER */}
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>Profile</h2>
-          <p style={styles.subtitle}>Your learning identity</p>
-        </div>
-
-        <button
-          style={styles.settingsBtn}
-          onClick={() => setTab("settings")}
-        >
-          ⚙
-        </button>
+      {/* Streak */}
+      <div style={styles.streakBox}>
+        🔥 Current Streak: {streak} day{streak !== 1 && "s"}
       </div>
 
-      {/* DR. E IDENTITY CARD */}
-      <div style={styles.identityCard}>
-        <div style={styles.avatar}>DR·E</div>
-
-        <div>
-          <div style={styles.identityTitle}>Study Companion</div>
-          <div style={styles.identitySub}>
-            Calm. Precise. Slightly judging.
+      {/* Earned Badges */}
+      <h2>🏆 Badges Earned</h2>
+      {earnedBadges.length === 0 && <p style={{ opacity: 0.7 }}>No badges yet. Keep learning!</p>}
+      <div style={styles.badgesContainer}>
+        {BADGES.filter(b => b.level === level && earnedBadges.includes(b.id)).map(b => (
+          <div key={b.id} style={styles.badgeCard}>
+            <h3>{b.title}</h3>
+            <p>{b.description}</p>
           </div>
-        </div>
+        ))}
       </div>
 
-      {/* NAME */}
-      <div style={styles.nameBox}>
-        {editing ? (
-          <>
-            <input
-              style={styles.input}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-
-            <button style={styles.saveBtn} onClick={saveName}>
-              Save
-            </button>
-          </>
-        ) : (
-          <>
-            <h3 style={styles.name}>{name}</h3>
-
-            <button
-              style={styles.editBtn}
-              onClick={() => setEditing(true)}
-            >
-              Edit name
-            </button>
-          </>
-        )}
+      {/* Example to earn badge manually (demo/testing) */}
+      <div style={{ marginTop: 20 }}>
+        <h2>🎯 Try Earning a Badge</h2>
+        {BADGES.filter(b => b.level === level).map(b => (
+          <button key={b.id} style={styles.earnBtn} onClick={() => earnBadge(b)}>
+            Earn "{b.title}"
+          </button>
+        ))}
       </div>
-
-      {/* LEVEL + XP */}
-      <div style={styles.levelCard}>
-        <div style={styles.levelText}>
-          Level {level}
-        </div>
-
-        <div style={styles.xpText}>
-          {xp} XP accumulated
-        </div>
-      </div>
-
-      {/* PROGRESS */}
-      <div style={styles.section}>
-        <h3 className="sectionTitle">Overall Progress</h3>
-
-        <div style={styles.progressBar}>
-          <div
-            style={{
-              ...styles.progressFill,
-              width: progress + "%",
-            }}
-          />
-        </div>
-
-        <p style={styles.progressText}>
-          {progress}% mastery
-        </p>
-      </div>
-
-      {/* STRONG AREAS */}
-      <div style={styles.section}>
-        <h3>Strong Areas</h3>
-
-        <div style={styles.grid}>
-          {strongAreas.map((item) => (
-            <div key={item} style={styles.goodCard}>
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* FOCUS AREAS */}
-      <div style={styles.section}>
-        <h3>Focus Areas</h3>
-
-        <div style={styles.grid}>
-          {weakAreas.map((item) => (
-            <div key={item} style={styles.badCard}>
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ height: 40 }} />
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
-
+// ---------- STYLES ----------
 const styles = {
-  page: {
+  container: {
     padding: 20,
-    background: "#0b0b0f",
-    color: "white",
-    minHeight: "100vh",
-    fontFamily: "system-ui",
-    overflowY: "auto",
+    paddingBottom: 100,
   },
-
-  header: {
+  streakBox: {
+    background: "#FFD700",
+    color: "#000",
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  badgesContainer: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "column",
+    gap: 12,
   },
-
-  title: {
-    margin: 0,
-  },
-
-  subtitle: {
-    margin: 0,
-    opacity: 0.6,
-    fontSize: 13,
-  },
-
-  settingsBtn: {
-    background: "#1a1a1f",
-    border: "none",
-    color: "white",
-    padding: "8px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  identityCard: {
-    display: "flex",
-    gap: 14,
-    alignItems: "center",
-    background: "#151518",
+  badgeCard: {
+    background: "#1a1a1a",
     padding: 16,
     borderRadius: 16,
-    marginTop: 20,
   },
-
-  avatar: {
-    background: "#FFD700",
-    color: "#000",
-    fontWeight: "bold",
-    padding: 12,
-    borderRadius: 12,
-  },
-
-  identityTitle: {
-    fontWeight: "bold",
-  },
-
-  identitySub: {
-    opacity: 0.6,
-    fontSize: 13,
-  },
-
-  nameBox: {
-    textAlign: "center",
-    marginTop: 20,
-  },
-
-  name: {
-    marginBottom: 6,
-  },
-
-  editBtn: {
-    background: "#FFD700",
-    border: "none",
-    padding: "6px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  saveBtn: {
-    background: "#4caf50",
-    border: "none",
-    padding: "6px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-
-  input: {
-    padding: 8,
-    borderRadius: 8,
-    border: "none",
-    marginRight: 8,
-  },
-
-  levelCard: {
-    background: "#FFD700",
-    color: "#000",
-    padding: 14,
-    borderRadius: 14,
-    marginTop: 20,
-    textAlign: "center",
-  },
-
-  levelText: {
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-
-  xpText: {
-    fontSize: 13,
-  },
-
-  section: {
-    marginTop: 28,
-  },
-
-  progressBar: {
-    width: "100%",
-    height: 14,
-    background: "#1a1a1f",
-    borderRadius: 10,
-    overflow: "hidden",
+  earnBtn: {
+    padding: 10,
     marginTop: 8,
-  },
-
-  progressFill: {
-    height: "100%",
+    width: "100%",
     background: "#FFD700",
-  },
-
-  progressText: {
-    opacity: 0.7,
-    marginTop: 6,
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-    marginTop: 10,
-  },
-
-  goodCard: {
-    background: "#162d16",
-    padding: 12,
     borderRadius: 12,
-    textAlign: "center",
-  },
-
-  badCard: {
-    background: "#2d1616",
-    padding: 12,
-    borderRadius: 12,
-    textAlign: "center",
+    fontWeight: "bold",
+    cursor: "pointer",
   },
 };
