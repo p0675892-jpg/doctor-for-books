@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@stripe/stripe-js':
-    specifier: ^8.9.0
-    version: 8.9.0
   firebase:
     specifier: 12.9.0
     version: 12.9.0
@@ -2731,11 +2728,6 @@ packages:
     resolution: {integrity: sha512-OAPJUAtgeINhh/TAlUID4QTs53Njm7xzddaVlEs/SXwgtiD1tW22zAB/W1wdqfrpmikgaWQ9Fw6Ws+hsiRm5Vg==}
     dependencies:
       '@sinonjs/commons': 1.8.6
-    dev: false
-
-  /@stripe/stripe-js@8.9.0:
-    resolution: {integrity: sha512-OJkXvUI5GAc56QdiSRimQDvWYEqn475J+oj8RzRtFTCPtkJNO2TWW619oDY+nn1ExR+2tCVTQuRQBbR4dRugww==}
-    engines: {node: '>=12.16'}
     dev: false
 
   /@surma/rollup-plugin-off-main-thread@2.2.3:
