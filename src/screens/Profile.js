@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../firebase"; // your firebase setup
+import { auth, db } from "../firebase"; // Firebase setup
 import { doc, updateDoc } from "firebase/firestore";
-
-// For web payments (Stripe / Paystack)
+import { signOut } from "firebase/auth";
 import { loadStripe } from "@stripe/stripe-js";
 
 export default function Profile({ user }) {
+  // ------------------ SAFETY ------------------
+  if (!user) {
+    return (
+      <div style={{ padding: 20, textAlign: "center" }}>
+        <h2>Loading profile…</h2>
+      </div>
+    );
+  }
+
+  // ------------------ STATE ------------------
   const [streak, setStreak] = useState(0);
   const [badges, setBadges] = useState([]);
   const [level, setLevel] = useState("Young Scholar");
@@ -13,7 +22,6 @@ export default function Profile({ user }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    // Load user data from localStorage or Firebase
     const s = parseInt(localStorage.getItem("dfb_streak")) || 0;
     const b = JSON.parse(localStorage.getItem("dfb_badges")) || [];
     const l = localStorage.getItem("dfb_level") || "Young Scholar";
@@ -25,23 +33,25 @@ export default function Profile({ user }) {
     setPro(p);
   }, []);
 
-  // ---------------- Web / PWA Payment ----------------
+  // ------------------ PRO UPGRADE ------------------
   const handleWebPayment = async () => {
-    // Example: Stripe Checkout session
-    const stripe = await loadStripe("pk_test_YOUR_STRIPE_PUBLIC_KEY"); // replace with real key
-    // Fetch session ID from backend (not shown here)
-    const response = await fetch("/create-checkout-session", {
-      method: "POST",
-      body: JSON.stringify({ uid: user.uid }),
-    });
-    const { sessionId } = await response.json();
-    await stripe.redirectToCheckout({ sessionId });
+    try {
+      const stripe = await loadStripe("pk_test_YOUR_STRIPE_PUBLIC_KEY"); // replace with real key
+      const response = await fetch("/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: user.uid }),
+      });
+      const { sessionId } = await response.json();
+      await stripe.redirectToCheckout({ sessionId });
+    } catch (err) {
+      console.error(err);
+      alert("Stripe session not ready yet.");
+    }
   };
 
-  // ---------------- Mobile / In-App Purchase ----------------
   const handleMobilePayment = async () => {
-    // Placeholder for Capacitor IAP / Google Play Billing
-    // Once purchase is verified, unlock Pro:
+    // Placeholder for mobile in-app purchase
     await unlockPro();
     alert("🎉 Purchase verified! Pro features unlocked!");
   };
@@ -49,7 +59,6 @@ export default function Profile({ user }) {
   const unlockPro = async () => {
     setPro(true);
     localStorage.setItem("dfb_pro", "true");
-    // Update Firebase user record
     try {
       await updateDoc(doc(db, "users", user.uid), { pro: true });
     } catch (err) {
@@ -57,18 +66,17 @@ export default function Profile({ user }) {
     }
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = () => {
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      // Mobile
       handleMobilePayment();
     } else {
-      // Web / PWA
       handleWebPayment();
     }
   };
 
   const toggleSettings = () => setSettingsOpen(!settingsOpen);
 
+  // ------------------ RENDER ------------------
   return (
     <div style={styles.container}>
       <h1>👤 {user.displayName || "Student"}'s Profile</h1>
@@ -114,8 +122,18 @@ export default function Profile({ user }) {
             <p>Email: {user.email}</p>
             <p>Notifications: On</p>
             <p>Dark Mode: Enabled</p>
-            <button style={styles.settingsOption}>Change Password</button>
-            <button style={styles.settingsOption}>Logout</button>
+            <button
+              style={styles.settingsOption}
+              onClick={() => alert("Change password coming soon!")}
+            >
+              Change Password
+            </button>
+            <button
+              style={styles.settingsOption}
+              onClick={() => signOut(auth)}
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>
@@ -128,15 +146,24 @@ export default function Profile({ user }) {
   );
 }
 
+// ------------------ STYLES ------------------
 const styles = {
   container: { padding: 20, paddingBottom: 100 },
   section: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
-  badgeRow: { display: "flex", flexWrap: "wrap", gap: 10 },
+  badgeRow: { display: "flex", flexWrap: "wrap", gap: 10, overflowX: "auto" },
   badge: { padding: 8, background: "#FFD700", borderRadius: 12, fontWeight: "bold", color: "#000" },
-  proBtn: { width: "100%", padding: 12, background: "#FFD700", color: "#000", border: "none", borderRadius: 12, fontWeight: "bold", cursor: "pointer" },
+  proBtn: {
+    width: "100%",
+    padding: 12,
+    background: "#FFD700",
+    color: "#000",
+    border: "none",
+    borderRadius: 12,
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
   settingsBtn: { width: "100%", padding: 10, borderRadius: 12, background: "#333", color: "#fff", border: "none", cursor: "pointer" },
   settingsCard: { marginTop: 10, padding: 12, background: "#222", borderRadius: 12 },
   settingsOption: { width: "100%", padding: 10, marginTop: 8, borderRadius: 12, background: "#FFD700", color: "#000", border: "none", cursor: "pointer" },
   footer: { textAlign: "center", marginTop: 20, opacity: 0.7 },
 };
-
