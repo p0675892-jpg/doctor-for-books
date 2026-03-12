@@ -6,9 +6,8 @@ import Sl from "./screens/Sl";
 import Home from "./screens/Home";
 import Ask from "./screens/Ask";
 import Profile from "./screens/Profile";
-import Settings from "./screens/Settings";
 import SnapExplain from "./screens/SnapExplain";
-import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser, FaCamera, FaCog } from 'react-icons/fa';
+import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser, FaCamera } from 'react-icons/fa';
 
 // Lazy load Stories to reduce initial load
 const Stories = lazy(() => import("./screens/Stories"));
@@ -76,7 +75,6 @@ export default function App() {
         );
       case "snap": return <SnapExplain />;
       case "profile": return <Profile user={user} setTab={setTab} />;
-      case "settings": return <Settings user={user} setTab={setTab} />;
       default: return <Home user={user} setTab={setTab} />;
     }
   };
@@ -90,9 +88,7 @@ export default function App() {
           <NavBtn icon={<FaQuestionCircle size={22} />} label="Ask" active={tab === "ask"} onClick={() => setTab("ask")} />
           <NavBtn icon={<FaHandPaper size={22} />} label="SL" active={tab === "sl"} onClick={() => setTab("sl")} />
           <NavBtn icon={<FaBook size={22} />} label="Stories" active={tab === "stories"} onClick={() => setTab("stories")} />
-          <NavBtn icon={<FaCamera size={22} />} label="Snap" active={tab === "snap"} onClick={() => setTab("snap")} />
           <NavBtn icon={<FaUser size={22} />} label="Profile" active={tab === "profile"} onClick={() => setTab("profile")} />
-          <NavBtn icon={<FaCog size={22} />} label="Settings" active={tab === "settings"} onClick={() => setTab("settings")} />
         </nav>
       </div>
     </ErrorBoundary>
