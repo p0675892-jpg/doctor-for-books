@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
-import Tesseract from "tesseract.js"; // Make sure tesseract.js is installed
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import Tesseract from "tesseract.js";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function Ask({ user }) {
+  if (!user) {
+    return <div style={{ padding: 20 }}>Loading Dr. E...</div>;
+  }
+
   const [notes, setNotes] = useState("");
   const [treatment, setTreatment] = useState("");
   const [saved, setSaved] = useState(false);
@@ -14,19 +18,31 @@ export default function Ask({ user }) {
   const [processingImage, setProcessingImage] = useState(false);
   const [userData, setUserData] = useState(null);
 
-  // Load user data from Firebase
+  // ---------------- Load user data ----------------
   useEffect(() => {
     async function fetchUser() {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) setUserData(docSnap.data());
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        } else {
+          await setDoc(docRef, { doctorVisits: 0 });
+          setUserData({ doctorVisits: 0 });
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
+
     fetchUser();
   }, [user]);
 
-  // ---------- Generate Treatment ----------
+  // ---------------- Treatment Generator ----------------
   const generateTreatment = (text) => {
     const t = text.toLowerCase();
+
     if (t.includes("math") || t.includes("algebra") || t.includes("equation"))
       return `🎯 Focus: Mathematics
 ✔ Review formulas for 10 minutes
@@ -57,97 +73,106 @@ export default function Ask({ user }) {
 ✔ Plan tomorrow`;
   };
 
+  // ---------------- Save Notes ----------------
   const saveNotes = async () => {
     if (!notes.trim()) return;
 
     const today = new Date().toDateString();
     const last = localStorage.getItem("dfb_reflect_last");
 
-    let newVisits = (userData?.doctorVisits || 0);
-    if (last !== today) newVisits += 1;
+    let visits = userData?.doctorVisits || 0;
 
-    localStorage.setItem("dfb_reflect_last", today);
-    localStorage.setItem("dfb_reflect_streak", newVisits);
+    if (last !== today) {
+      visits += 1;
+      localStorage.setItem("dfb_reflect_last", today);
+    }
 
     setTreatment(generateTreatment(notes));
     setSaved(true);
+    setNotes("");
 
-    // Update Firebase doctor visits
-    if (userData) {
+    try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { doctorVisits: newVisits });
-      setUserData((prev) => ({ ...prev, doctorVisits: newVisits }));
+      await updateDoc(docRef, { doctorVisits: visits });
+      setUserData({ doctorVisits: visits });
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // ---------- Explain Topic ----------
+  // ---------------- Explain Topic ----------------
   const explainTopic = () => {
     if (!topic.trim()) return;
 
     const t = topic.toLowerCase();
-    // Simple non-AI logic
-    let explanation = `📘 Explanation for "${topic}":\n`;
+    let explanation = `📘 Explanation for "${topic}"\n\n`;
 
     if (t.includes("newton")) {
-      explanation += `
-1️⃣ Simple Explanation: Newton's laws describe motion and forces.
-2️⃣ Key Points:
-- First Law: Inertia
-- Second Law: F=ma
-- Third Law: Action-Reaction
-3️⃣ Example: Push a wall and the wall pushes back.
-4️⃣ Mini Quiz:
-- Define Newton's First Law
-- Give an example of inertia
-`;
+      explanation += `Newton's Laws explain motion and force.
+
+1️⃣ First Law – Inertia  
+Objects stay at rest or motion unless forced.
+
+2️⃣ Second Law – F = ma  
+Force equals mass × acceleration.
+
+3️⃣ Third Law – Action & Reaction  
+Every action has an equal opposite reaction.
+
+Example: Push a wall, it pushes back.`;
     } else if (t.includes("photosynthesis")) {
-      explanation += `
-1️⃣ Simple Explanation: Plants make food using sunlight.
-2️⃣ Key Points:
-- Chlorophyll captures light
-- CO2 + H2O → Glucose + O2
-3️⃣ Example: Sunlight turning leaves green
-4️⃣ Mini Quiz:
-- What is the main pigment in photosynthesis?
-- Write the photosynthesis equation
-`;
+      explanation += `Photosynthesis is how plants make food.
+
+Plants use:
+- Sunlight
+- Water
+- Carbon dioxide
+
+Equation:
+CO₂ + H₂O → Glucose + O₂
+
+Chlorophyll captures sunlight.`;
     } else {
-      explanation += `
-1️⃣ Simple Explanation: ${topic} is a concept you should explore.
-2️⃣ Key Points: Identify 3 main points.
-3️⃣ Example: Give a real-life example.
-4️⃣ Mini Quiz: Write 2 questions based on the topic.
-`;
+      explanation += `${topic} is a concept worth studying.
+
+Try this method:
+✔ Identify the main definition  
+✔ Break it into 3 key ideas  
+✔ Find a real-life example`;
     }
 
     setTopicExplanation(explanation);
-    setTopic(""); // clear input for better UX
+    setTopic("");
   };
 
-  // ---------- Snap & Explain ----------
+  // ---------------- Snap & Explain ----------------
   const handleSnap = async (e) => {
     if (!e.target.files[0]) return;
+
     setProcessingImage(true);
     setSnapResult("");
 
     const image = e.target.files[0];
+
     try {
-      const { data } = await Tesseract.recognize(image, "eng", { logger: m => {} });
+      const { data } = await Tesseract.recognize(image, "eng");
       const text = data.text;
-      setSnapResult(`📸 OCR Result:\n${text}\n\nTry explaining this in Explain Topic tab!`);
+
+      setSnapResult(`📸 Text Found:\n\n${text}`);
+      setTopic(text.substring(0, 80));
     } catch (err) {
-      setSnapResult("❌ Failed to process image.");
-    } finally {
-      setProcessingImage(false);
+      setSnapResult("❌ Could not read the image.");
     }
+
+    setProcessingImage(false);
   };
 
-  // ---------- Quick Relief Tools ----------
+  // ---------------- Quick Help ----------------
   const tools = [
-    { title: "🧠 Calm My Mind", text: "Close your eyes. Inhale for 4s… exhale slowly. Your brain resets." },
-    { title: "⚡ Quick Motivation", text: "Future you is begging you not to quit today 💛" },
-    { title: "📚 Study Tip", text: "Active recall beats rereading every time." },
-    { title: "🌟 Scholar Tip", text: "Finish one small task before bedtime to feel accomplished." },
+    { title: "🧠 Calm My Mind", text: "Close your eyes. Breathe slowly. Your brain resets." },
+    { title: "⚡ Quick Motivation", text: "Future you will thank you for studying today." },
+    { title: "📚 Study Tip", text: "Active recall is better than rereading." },
+    { title: "🌟 Scholar Tip", text: "Finish one small task before sleep." }
   ];
 
   return (
@@ -155,22 +180,23 @@ export default function Ask({ user }) {
       <h1>Ask Dr. E 🩺</h1>
       <p style={{ opacity: 0.7 }}>Real doctors listen first.</p>
 
-      {/* Doctor Visit Counter */}
       <div style={styles.streakBox}>
-        🏥 Educational Doctor Visits: {userData?.doctorVisits || 0}
+        🏥 Doctor Visits: {userData?.doctorVisits || 0}
       </div>
 
-      {/* Patient Notes */}
+      {/* Notes */}
       <div style={styles.card}>
         <h3>📝 Patient Notes</h3>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Tell Dr. E about your day..."
+          placeholder="Tell Dr. E about your study day..."
           style={styles.textarea}
         />
-        <button style={styles.mainBtn} onClick={saveNotes}>Generate Today’s Treatment</button>
-        {saved && <p style={{ marginTop: 8, opacity: 0.8 }}>Notes saved 💛</p>}
+        <button style={styles.mainBtn} onClick={saveNotes}>
+          Generate Treatment
+        </button>
+        {saved && <p>Notes saved 💛</p>}
       </div>
 
       {/* Treatment */}
@@ -181,49 +207,58 @@ export default function Ask({ user }) {
         </div>
       )}
 
-      {/* Explain Topic */}
+      {/* Explain */}
       <div style={styles.card}>
-        <h3>🧠 Explain a Topic</h3>
+        <h3>🧠 Explain Topic</h3>
         <input
           style={styles.textarea}
-          placeholder="Type topic here..."
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
+          placeholder="Type topic..."
         />
-        <button style={styles.mainBtn} onClick={explainTopic}>Explain Topic</button>
-        {topicExplanation && <pre style={styles.treatment}>{topicExplanation}</pre>}
+        <button style={styles.mainBtn} onClick={explainTopic}>
+          Explain
+        </button>
+
+        {topicExplanation && (
+          <pre style={styles.treatment}>{topicExplanation}</pre>
+        )}
       </div>
 
-      {/* Snap & Explain */}
+      {/* Snap */}
       <div style={styles.card}>
         <h3>📸 Snap & Explain</h3>
         <input type="file" accept="image/*" onChange={handleSnap} />
-        {processingImage && <p>Processing image...</p>}
+
+        {processingImage && <p>Reading image...</p>}
         {snapResult && <pre style={styles.treatment}>{snapResult}</pre>}
       </div>
 
-      {/* Quick Relief Tools */}
+      {/* Tools */}
       <div style={styles.card}>
         <h3>⚡ Quick Help</h3>
         {tools.map((t, i) => (
-          <button key={i} style={styles.toolBtn} onClick={() => setToolMsg(t.text)}>
+          <button
+            key={i}
+            style={styles.toolBtn}
+            onClick={() => setToolMsg(t.text)}
+          >
             {t.title}
           </button>
         ))}
-        {toolMsg && <p style={styles.toolMsg}>{toolMsg}</p>}
+
+        {toolMsg && <p style={{ marginTop: 10 }}>{toolMsg}</p>}
       </div>
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
 const styles = {
   container: { padding: 20, paddingBottom: 100 },
   card: { background: "#1a1a1a", padding: 16, borderRadius: 16, marginBottom: 14 },
-  textarea: { width: "100%", padding: 12, borderRadius: 10, marginTop: 10, marginBottom: 10, minHeight: 40 },
-  mainBtn: { width: "100%", padding: 12, background: "#FFD700", borderRadius: 12, fontWeight: "bold", marginTop: 8, cursor: "pointer" },
+  textarea: { width: "100%", padding: 10, borderRadius: 10, marginTop: 10 },
+  mainBtn: { width: "100%", padding: 12, background: "#FFD700", borderRadius: 12, marginTop: 10, fontWeight: "bold" },
+  toolBtn: { width: "100%", padding: 10, marginTop: 8, background: "#FFD700", borderRadius: 10 },
   treatment: { whiteSpace: "pre-wrap", lineHeight: 1.6 },
-  toolBtn: { width: "100%", padding: 10, marginTop: 8, cursor: "pointer" },
-  toolMsg: { marginTop: 12, opacity: 0.9 },
-  streakBox: { background: "#FFD700", color: "#000", padding: 10, borderRadius: 12, marginBottom: 14, fontWeight: "bold", textAlign: "center" },
+  streakBox: { background: "#FFD700", color: "#000", padding: 10, borderRadius: 12, marginBottom: 14, textAlign: "center", fontWeight: "bold" }
 };
