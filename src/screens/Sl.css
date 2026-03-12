@@ -1,0 +1,85 @@
+.sl-container {
+  padding: 20px;
+  background: #000;
+  min-height: 100vh;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+.sl-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sl-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.sl-tab-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #222;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.sl-tab-btn.active {
+  background: #ffd700;
+  color: #000;
+}
+
+.sl-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+/* Flip card styles */
+.sl-card {
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.sl-card-inner {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* square cards */
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.sl-card.flipped .sl-card-inner {
+  transform: rotateY(180deg);
+}
+
+.sl-card-front,
+.sl-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backface-visibility: hidden;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.sl-card-front {
+  background: #111;
+}
+
+.sl-card-back {
+  background: #222;
+  transform: rotateY(180deg);
+}
