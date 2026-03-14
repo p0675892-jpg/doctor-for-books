@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import AuthScreen from "./AuthScreen";
@@ -7,10 +7,9 @@ import Home from "./screens/Home";
 import Ask from "./screens/Ask";
 import Profile from "./screens/Profile";
 import SnapExplain from "./screens/SnapExplain";
-import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser, FaCamera } from 'react-icons/fa';
+import Stories from "./screens/Stories"; // ✅ Import normally
 
-// Lazy load Stories to reduce initial load
-const Stories = lazy(() => import("./screens/Stories"));
+import { FaHome, FaQuestionCircle, FaHandPaper, FaBook, FaUser, FaCamera } from 'react-icons/fa';
 
 // ---------- Error Boundary ----------
 class ErrorBoundary extends React.Component {
@@ -67,12 +66,7 @@ export default function App() {
       case "home": return <Home user={user} setTab={setTab} />;
       case "ask": return <Ask user={user} />;
       case "sl": return <Sl />;
-      case "stories":
-        return (
-          <Suspense fallback={<div style={{ padding: 20 }}>Loading Stories...</div>}>
-            <Stories />
-          </Suspense>
-        );
+      case "stories": return <Stories />; // ✅ No lazy loading
       case "snap": return <SnapExplain />;
       case "profile": return <Profile user={user} setTab={setTab} />;
       default: return <Home user={user} setTab={setTab} />;
