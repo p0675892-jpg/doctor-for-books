@@ -182,8 +182,7 @@ const storiesData = [
     title: "The Surprise Quiz",
     short: "Unexpected quiz… aced it by luck.",
     full: "I walked in expecting no test, saw a surprise quiz, panicked, and guessed half the answers… and aced it! Lesson: luck helps, but preparation multiplies it."
-  }
-  // Add more stories here
+  },
 ];
   
 
