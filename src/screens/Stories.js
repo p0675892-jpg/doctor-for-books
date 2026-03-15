@@ -189,9 +189,11 @@ const DEFAULT_STORIES_PER_DAY = 5;
 
 export default function Stories() {
   const [expandedId, setExpandedId] = useState(null);
-  const [progress, setProgress] = useState(() =>
-    JSON.parse(localStorage.getItem("storiesProgress")) || { index: 0, date: "", streak: 0, lastRead: "" }
-  );
+  const [progress, setProgress] = useState(() => {
+  const saved = JSON.parse(localStorage.getItem("storiesProgress"));
+  if (saved) return saved;
+  return { index: DEFAULT_STORIES_PER_DAY, date: new Date().toDateString(), streak: 0, lastRead: "" };
+});
   const [favorites, setFavorites] = useState(() =>
     JSON.parse(localStorage.getItem("storiesFavorites")) || {}
   );
@@ -204,27 +206,30 @@ export default function Stories() {
 
   // --- Daily stories logic & streak + missed days ---
   useEffect(() => {
-    const today = new Date().toDateString();
-    const lastRead = progress.lastRead || today;
+  const today = new Date().toDateString();
+  const lastRead = progress.lastRead || today;
 
-    const lastDate = new Date(lastRead);
-    const todayDate = new Date(today);
-    const diffDays = Math.floor((todayDate - lastDate) / 86400000); // difference in days
+  const lastDate = new Date(lastRead);
+  const todayDate = new Date(today);
+  const diffDays = Math.floor((todayDate - lastDate) / 86400000);
 
-    let newIndex = progress.index;
-    let newStreak = progress.streak;
+  let newIndex = progress.index;
+  let newStreak = progress.streak;
 
-    if (diffDays > 0) {
-      // Advance stories for missed days
-      newIndex = Math.min(progress.index + diffDays * storiesPerDay, storiesData.length);
-      // Update streak: only consecutive days count
-      newStreak = diffDays === 1 ? progress.streak + 1 : 1;
-    }
+  if (diffDays > 0) {
+    // Add stories for missed days
+    newIndex = Math.min(progress.index + diffDays * storiesPerDay, storiesData.length);
+    // Update streak
+    newStreak = diffDays === 1 ? progress.streak + 1 : 1;
+  }
 
-    const newProgress = { index: newIndex, date: today, streak: newStreak, lastRead: today };
-    setProgress(newProgress);
-    localStorage.setItem("storiesProgress", JSON.stringify(newProgress));
-  }, [storiesPerDay]);
+  // Always make sure at least today's stories are available
+  if (newIndex === 0) newIndex = DEFAULT_STORIES_PER_DAY;
+
+  const newProgress = { index: newIndex, date: today, streak: newStreak, lastRead: today };
+  setProgress(newProgress);
+  localStorage.setItem("storiesProgress", JSON.stringify(newProgress));
+}, [storiesPerDay]);
 
   // --- Stories for today ---
   const startIndex = Math.max(progress.index - storiesPerDay, 0);
