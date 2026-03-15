@@ -14,7 +14,6 @@ const storiesData = [
     short: "Stress hit me hard this semester…",
     full: "Stress hit me hard this semester. I felt overwhelmed with assignments, tests, and life outside school. I started planning my week in small chunks and gave myself 10 minutes of focused study per subject each day. Slowly, I regained control and saw progress."
   },
-  const storiesDataBatch2 = [
   {
     id: 3,
     title: "The Midnight Snack Adventure",
