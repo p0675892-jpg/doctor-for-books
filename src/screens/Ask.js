@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import Tesseract from "tesseract.js";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function Ask({ user }) {
-  if (!user) {
-    return <div style={{ padding: 20 }}>Loading Dr. E...</div>;
-  }
+  if (!user) return <div style={{ padding: 20 }}>Loading Dr. E...</div>;
 
   const [notes, setNotes] = useState("");
   const [treatment, setTreatment] = useState("");
@@ -18,6 +16,8 @@ export default function Ask({ user }) {
   const [processingImage, setProcessingImage] = useState(false);
   const [userData, setUserData] = useState(null);
 
+  const today = new Date().toDateString();
+
   // ---------------- Load user data ----------------
   useEffect(() => {
     async function fetchUser() {
@@ -28,73 +28,92 @@ export default function Ask({ user }) {
         if (docSnap.exists()) {
           setUserData(docSnap.data());
         } else {
-          await setDoc(docRef, { doctorVisits: 0 });
-          setUserData({ doctorVisits: 0 });
+          await setDoc(docRef, { doctorVisits: 0, notesHistory: [] });
+          setUserData({ doctorVisits: 0, notesHistory: [] });
         }
       } catch (err) {
         console.error(err);
       }
     }
-
     fetchUser();
   }, [user]);
 
   // ---------------- Treatment Generator ----------------
   const generateTreatment = (text) => {
     const t = text.toLowerCase();
+    const variations = [
+      (base) => `${base}\n✔ Try again with slightly different method`,
+      (base) => `${base}\n✔ Focus on one step more carefully`,
+      (base) => `${base}\n✔ Summarize out loud to retain knowledge`,
+    ];
+
+    let baseTreatment = "";
 
     if (t.includes("math") || t.includes("algebra") || t.includes("equation"))
-      return `🎯 Focus: Mathematics
+      baseTreatment = `🎯 Focus: Mathematics
 ✔ Review formulas for 10 minutes
 ✔ Solve 2 practice questions
 ✔ Explain concept aloud`;
 
-    if (t.includes("english") || t.includes("essay") || t.includes("grammar"))
-      return `🎯 Focus: English
+    else if (t.includes("english") || t.includes("essay") || t.includes("grammar"))
+      baseTreatment = `🎯 Focus: English
 ✔ Read one passage
 ✔ Write 5 sentences
 ✔ Learn 3 new words`;
 
-    if (t.includes("biology") || t.includes("plant") || t.includes("cell"))
-      return `🎯 Focus: Biology
+    else if (t.includes("biology") || t.includes("plant") || t.includes("cell"))
+      baseTreatment = `🎯 Focus: Biology
 ✔ Review diagrams
 ✔ Summarise key idea
 ✔ Teach someone`;
 
-    if (t.includes("tired") || t.includes("stress") || t.includes("confused"))
-      return `🩹 Recovery Mode
+    else if (t.includes("tired") || t.includes("stress") || t.includes("confused"))
+      baseTreatment = `🩹 Recovery Mode
 ✔ Rest for 20 minutes
 ✔ Drink water
 ✔ Do one small task only`;
 
-    return `🎯 General Focus
+    else baseTreatment = `🎯 General Focus
 ✔ Review notes for 10 minutes
 ✔ Identify one weak area
 ✔ Plan tomorrow`;
+
+    // Randomize variation
+    const random = variations[Math.floor(Math.random() * variations.length)];
+    return random(baseTreatment);
   };
 
   // ---------------- Save Notes ----------------
   const saveNotes = async () => {
     if (!notes.trim()) return;
 
-    const today = new Date().toDateString();
-    const last = localStorage.getItem("dfb_reflect_last");
-
-    let visits = userData?.doctorVisits || 0;
-
-    if (last !== today) {
-      visits += 1;
-      localStorage.setItem("dfb_reflect_last", today);
+    if (userData?.notesHistory?.some(n => n.date === today)) {
+      alert("💛 You already submitted notes today! Come back tomorrow for more.");
+      return;
     }
 
-    setTreatment(generateTreatment(notes));
+    const newTreatment = generateTreatment(notes);
+    setTreatment(newTreatment);
     setSaved(true);
-    setNotes("");
 
     try {
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { doctorVisits: visits });
-      setUserData({ doctorVisits: visits });
+      const updatedVisits = (userData.doctorVisits || 0) + 1;
+
+      // Update Firestore
+      await updateDoc(docRef, {
+        doctorVisits: updatedVisits,
+        notesHistory: arrayUnion({ date: today, note: notes, treatment: newTreatment }),
+      });
+
+      // Update local state
+      setUserData({
+        ...userData,
+        doctorVisits: updatedVisits,
+        notesHistory: [...(userData.notesHistory || []), { date: today, note: notes, treatment: newTreatment }]
+      });
+
+      setNotes("");
     } catch (err) {
       console.error(err);
     }
